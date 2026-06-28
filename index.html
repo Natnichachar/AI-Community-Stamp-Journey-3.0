@@ -1,0 +1,1996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stamp Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<style>
+/* ══════════════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --terra:#C4622D;--terra-l:#E8A882;--terra-p:#F5E6DC;
+  --cream:#FAF7F2;--cream-d:#F0EAE0;
+  --tm:#2C1F14;--ts:#7A5C44;
+  --green:#00704A;--green-l:#EAF7F0;--green-d:#004D33;
+  --navy:#1A3A5C;--blue:#2D6EC4;--blue-l:#EAF3FF;--blue-d:#0C447C;
+  --purple:#6D4AAF;--purple-l:#F0EBFA;--purple-d:#4B2F87;
+  --gray:#6B7280;--gray-l:#F3F4F6;
+  --red:#DC2626;--red-l:#FEE2E2;
+  --amber:#D97706;--amber-l:#FEF3C7;
+  --font:'Montserrat',sans-serif;
+  --r-sm:10px;--r-md:14px;--r-lg:20px;--r-xl:26px;
+  --shadow:0 2px 12px rgba(44,31,20,.08);
+  --shadow-lg:0 8px 32px rgba(44,31,20,.14);
+}
+body{background:#E4DDD5;min-height:100vh;display:flex;justify-content:center;font-family:var(--font);}
+.app{width:100%;max-width:430px;min-height:100vh;background:var(--cream);display:flex;flex-direction:column;position:relative;}
+.screen{display:none;flex-direction:column;min-height:100vh;}
+.screen.active{display:flex;}
+
+/* ══ AUTH ══ */
+.auth-hero{background:var(--terra);padding:48px 28px 36px;text-align:center;}
+.auth-hero-icon{width:64px;height:64px;background:rgba(255,255,255,.2);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
+.auth-hero-icon i{font-size:32px;color:#fff;}
+.auth-hero h1{font-size:26px;font-weight:700;color:#fff;margin-bottom:4px;}
+.auth-hero h2{font-size:16px;font-weight:500;color:rgba(255,255,255,.8);margin-bottom:10px;}
+.auth-hero p{font-size:13px;color:rgba(255,255,255,.65);line-height:1.6;}
+.auth-body{padding:28px 24px 40px;flex:1;}
+.auth-tabs{display:flex;background:var(--cream-d);border-radius:var(--r-md);padding:4px;margin-bottom:24px;}
+.auth-tab{flex:1;padding:10px 0;font-size:13px;font-weight:700;text-align:center;cursor:pointer;border:none;background:transparent;border-radius:10px;color:var(--ts);font-family:var(--font);transition:.2s;}
+.auth-tab.active{background:#fff;color:var(--terra);box-shadow:var(--shadow);}
+.form-group{margin-bottom:16px;}
+.form-label{font-size:12px;font-weight:700;color:var(--ts);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.8px;}
+.form-input{width:100%;padding:13px 16px;border:1.5px solid var(--cream-d);border-radius:var(--r-md);font-size:14px;font-family:var(--font);color:var(--tm);background:#fff;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:var(--terra);}
+.form-input::placeholder{color:#C4B5A8;}
+.form-input.mono{letter-spacing:3px;text-transform:uppercase;font-weight:700;text-align:center;}
+.form-select{width:100%;padding:13px 16px;border:1.5px solid var(--cream-d);border-radius:var(--r-md);font-size:14px;font-family:var(--font);color:var(--tm);background:#fff;outline:none;appearance:none;}
+.form-select:focus{border-color:var(--terra);}
+.form-hint{font-size:11px;color:var(--ts);margin-top:5px;line-height:1.5;}
+.btn-primary{width:100%;padding:16px;background:var(--terra);color:#fff;border:none;border-radius:var(--r-md);font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:opacity .2s;}
+.btn-primary:hover{opacity:.9;}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;}
+.btn-secondary{width:100%;padding:14px;background:#fff;color:var(--terra);border:1.5px solid var(--terra-l);border-radius:var(--r-md);font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s;}
+.btn-secondary:hover{background:var(--terra-p);}
+.btn-secondary:disabled{opacity:.45;cursor:not-allowed;}
+.auth-note{background:var(--terra-p);border-radius:var(--r-md);padding:12px 16px;font-size:12px;color:#7A2E0A;line-height:1.7;margin-top:16px;}
+.auth-note strong{font-weight:700;}
+.error-msg{background:var(--red-l);border:1px solid #FCA5A5;border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:var(--red);margin-bottom:14px;display:none;}
+.success-msg{background:var(--green-l);border:1px solid #86C9AC;border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:var(--green-d);margin-bottom:14px;display:none;}
+
+/* ══ SHARED HEADER ══ */
+.p-header{background:var(--terra);padding:24px 20px 22px;}
+.p-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.p-header-brand{display:flex;align-items:center;gap:10px;}
+.p-header-icon{width:38px;height:38px;background:rgba(255,255,255,.2);border-radius:11px;display:flex;align-items:center;justify-content:center;}
+.p-header-icon i{font-size:20px;color:#fff;}
+.p-header-title{font-size:16px;font-weight:700;color:#fff;}
+.p-header-subtitle{font-size:12px;color:rgba(255,255,255,.7);}
+.btn-ghost{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:9px;padding:7px 12px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.btn-back{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:9px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:16px;flex-shrink:0;}
+.p-header-welcome{font-size:22px;font-weight:700;color:#fff;margin-bottom:3px;}
+.p-header-sub{font-size:13px;color:rgba(255,255,255,.7);}
+.p-body{flex:1;padding-bottom:80px;}
+.section{padding:20px 16px 0;}
+.slabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--ts);margin-bottom:12px;}
+.card{background:#fff;border-radius:var(--r-lg);border:.5px solid #E8DDD4;padding:18px;box-shadow:var(--shadow);}
+.mt-16{margin-top:16px;}.mt-12{margin-top:12px;}.mb-10{margin-bottom:10px;}
+
+/* ══ DASHBOARD ══ */
+.dash-header{background:var(--navy);padding:24px 20px 22px;}
+.join-card{background:#fff;border-radius:var(--r-lg);border:.5px solid #E8DDD4;padding:18px;box-shadow:var(--shadow);margin-bottom:14px;}
+.join-card h4{font-size:13px;font-weight:700;color:var(--tm);margin-bottom:4px;}
+.join-card p{font-size:12px;color:var(--ts);margin-bottom:12px;line-height:1.5;}
+.join-row{display:flex;gap:8px;}
+.join-row .form-input{flex:1;}
+.btn-join{padding:0 18px;background:var(--terra);color:#fff;border:none;border-radius:var(--r-md);font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:opacity .2s;}
+.btn-join:hover{opacity:.9;}
+.btn-join:disabled{opacity:.45;cursor:not-allowed;}
+.btn-create-track{width:100%;padding:14px;background:var(--navy);color:#fff;border:none;border-radius:var(--r-md);font-size:14px;font-weight:700;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;transition:opacity .2s;}
+.btn-create-track:hover{opacity:.9;}
+.track-list{display:flex;flex-direction:column;gap:10px;}
+.track-card{background:#fff;border-radius:var(--r-lg);border:.5px solid #E8DDD4;padding:16px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s,box-shadow .15s;display:flex;align-items:center;gap:13px;}
+.track-card:hover{box-shadow:var(--shadow-lg);}
+.track-card-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.track-card-icon.admin{background:var(--navy);}
+.track-card-icon.participant{background:var(--terra-p);}
+.track-card-icon i{font-size:21px;}
+.track-card-icon.admin i{color:#fff;}
+.track-card-icon.participant i{color:var(--terra);}
+.track-card-body{flex:1;min-width:0;}
+.track-card-name{font-size:14px;font-weight:700;color:var(--tm);margin-bottom:3px;}
+.track-card-meta{font-size:11px;color:var(--ts);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.role-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.4px;}
+.role-pill.admin{background:var(--navy);color:#fff;}
+.role-pill.participant{background:var(--terra-p);color:var(--terra);}
+.track-card-progress{font-size:11px;color:var(--ts);font-weight:600;}
+.track-card-chevron{color:var(--ts);font-size:18px;flex-shrink:0;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--ts);}
+.empty-state i{font-size:42px;display:block;margin-bottom:12px;color:var(--terra-l);}
+.empty-state p{font-size:13px;line-height:1.6;}
+
+/* ── Create Track Modal ── */
+.access-code-display{background:var(--terra-p);border-radius:var(--r-md);padding:18px;text-align:center;margin:14px 0;}
+.access-code-display .code-big{font-size:32px;font-weight:700;letter-spacing:6px;color:var(--terra);margin-bottom:6px;}
+.access-code-display .code-label{font-size:11px;color:#7A2E0A;font-weight:600;}
+.btn-copy-code{background:#fff;border:1.5px solid var(--terra);color:var(--terra);border-radius:var(--r-sm);padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:6px;margin-top:10px;}
+
+/* ══ PARTICIPANT: STAMP CARD ══ */
+.ms-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px;}
+.ms-card{border-radius:var(--r-md);border:1.5px solid #E8DDD4;padding:12px 10px;display:flex;gap:9px;align-items:center;transition:.3s;}
+.ms-card.unlocked{border-color:var(--green);background:var(--green-l);}
+.ms-card.redeemed{border-color:#C4B5A8;background:#F5F2EE;}
+.ms-gfx{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--navy);color:#fff;font-size:18px;}
+.ms-card.redeemed .ms-gfx{background:#B0A898;}
+.ms-info h4{font-size:12px;font-weight:700;color:var(--tm);margin-bottom:2px;line-height:1.3;}
+.ms-info p{font-size:11px;color:var(--ts);}
+.ms-card.unlocked .ms-info p{color:var(--green);font-weight:600;}
+.ms-card.redeemed .ms-info p{color:#B0A898;font-weight:600;}
+.track{margin-bottom:20px;}
+.track-lbl{display:flex;justify-content:space-between;margin-bottom:5px;flex-wrap:wrap;gap:4px;}
+.tl{font-size:10px;font-weight:700;color:var(--ts);}
+.tline{height:8px;background:var(--cream-d);border-radius:99px;}
+.tfill{height:100%;background:var(--terra);border-radius:99px;transition:width .5s;}
+.tdots{display:flex;justify-content:space-between;margin-top:6px;}
+.dot{width:13px;height:13px;border-radius:50%;border:2.5px solid var(--terra-l);background:#fff;transition:.3s;}
+.dot.r{background:var(--terra);border-color:var(--terra);}
+.dot.rg{background:var(--green);border-color:var(--green);}
+.sgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px;}
+.stamp{width:100%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .2s;position:relative;overflow:hidden;}
+.stamp.col{background:var(--terra-p);border:2.5px solid var(--terra);color:var(--terra);}
+.stamp.unc{background:#fff;border:2.5px dashed var(--terra-l);}
+.stamp-cat-svg{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:68%;height:54%;color:currentColor;opacity:.18;z-index:1;pointer-events:none;}
+.stamp-cat-svg path{fill:currentColor;}
+.stamp.col.milestone{border-color:var(--green);background:var(--green-l);color:var(--green);}
+.snum{font-size:22px;font-weight:700;line-height:1;opacity:.7;display:block;text-align:center;}
+.stamp-ts{font-size:7px;color:var(--ts);opacity:.7;text-align:center;line-height:1.2;margin-top:2px;max-width:100%;overflow:hidden;}
+.ptxt{font-size:14px;color:var(--ts);}
+.ptxt strong{color:var(--tm);font-weight:700;}
+.qr-section{margin-top:16px;border-top:1px solid var(--cream-d);padding-top:16px;}
+.qr-section h4{font-size:13px;font-weight:700;color:var(--tm);margin-bottom:4px;}
+.qr-section p{font-size:12px;color:var(--ts);margin-bottom:12px;line-height:1.5;}
+.qr-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;}
+.qr-card{border-radius:var(--r-md);border:1.5px solid #E8DDD4;padding:14px;text-align:center;transition:.3s;}
+.qr-card.active-qr{border-color:var(--terra);background:var(--terra-p);}
+.qr-card.locked{opacity:.4;}
+.qr-card.redeemed-qr{border-color:#999;background:#F5F2EE;}
+.qr-box{width:76px;height:76px;border-radius:12px;background:var(--tm);margin:0 auto 10px;display:flex;align-items:center;justify-content:center;}
+.qr-card.redeemed-qr .qr-box{background:#999;}
+.qr-lbl{font-size:12px;font-weight:700;color:var(--tm);margin-bottom:3px;}
+.qr-sub{font-size:11px;color:var(--ts);}
+.qr-card.redeemed-qr .qr-lbl,.qr-card.redeemed-qr .qr-sub{color:#999;}
+.redeemed-tag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;background:#E0D8D0;color:#888;margin-top:6px;}
+.sess-grid{display:grid;gap:10px;}
+.sess-card{background:#fff;border-radius:var(--r-md);border:.5px solid #E8DDD4;padding:14px 15px;display:flex;gap:12px;align-items:flex-start;box-shadow:var(--shadow);}
+.sess-ic{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sess-ic.col{background:var(--terra-p);}.sess-ic.col i{color:var(--terra);}
+.sess-ic.avl{background:var(--blue-l);}.sess-ic.avl i{color:var(--blue);}
+.sess-ic.upc{background:var(--cream-d);}.sess-ic.upc i{color:#A09080;}
+.sname{font-size:14px;font-weight:700;color:var(--tm);}
+.stype{font-size:11px;color:var(--ts);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin:3px 0 4px;}
+.sdesc{font-size:12px;color:var(--ts);line-height:1.5;margin-bottom:6px;}
+.stop{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;}
+.pb{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--blue-l);color:var(--blue);}
+.spill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;}
+.spill.col{background:var(--green-l);color:var(--green-d);}
+.spill.avl{background:var(--blue-l);color:var(--blue-d);}
+.spill.upc{background:var(--cream-d);color:var(--ts);}
+.scan-ts{font-size:11px;color:var(--ts);margin-top:5px;display:flex;align-items:center;gap:4px;}
+.scan-ts i{font-size:12px;color:var(--terra-l);}
+.p-actions{padding:20px 16px 0;display:flex;flex-direction:column;gap:10px;}
+.smsg{border-radius:var(--r-md);padding:13px 16px;display:flex;align-items:center;gap:10px;}
+.smsg.s-on{background:var(--green-l);border:1.5px solid var(--green);}
+.smsg.s-on i{color:var(--green);font-size:20px;}
+.smsg span{font-size:13px;font-weight:600;}
+.smsg.s-on span{color:var(--green-d);}
+.btn-scan{background:var(--terra);color:#fff;border:none;border-radius:var(--r-md);padding:16px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;width:100%;font-family:var(--font);transition:opacity .2s;}
+.btn-scan:hover{opacity:.9;}
+.btn-scan:disabled{opacity:.4;cursor:not-allowed;}
+.btn-row-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-checkin{background:#fff;color:var(--navy);border:1.5px solid var(--navy);border-radius:var(--r-md);padding:16px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;font-family:var(--font);transition:background .2s;}
+.btn-checkin:hover{background:var(--blue-l);}
+.btn-checkin:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ══ QR SCANNER / CHECK-IN MODALS ══ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.scanner-modal{background:#fff;border-radius:var(--r-xl);width:100%;max-width:380px;overflow:hidden;box-shadow:var(--shadow-lg);max-height:92vh;display:flex;flex-direction:column;}
+.scanner-header{background:var(--tm);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.scanner-header h3{font-size:16px;font-weight:700;color:#fff;}
+.btn-close-modal{background:rgba(255,255,255,.15);border:none;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:18px;flex-shrink:0;}
+.scanner-body{padding:20px;overflow-y:auto;}
+.scanner-viewfinder{position:relative;width:100%;padding-bottom:100%;border-radius:var(--r-lg);overflow:hidden;background:#000;margin-bottom:16px;}
+.scanner-viewfinder video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.scanner-viewfinder canvas{position:absolute;inset:0;width:100%;height:100%;display:none;}
+.scan-guide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.scan-guide-box{width:55%;height:55%;border:3px solid rgba(255,255,255,.85);border-radius:12px;box-shadow:0 0 0 2000px rgba(0,0,0,.4);}
+.scanner-status{text-align:center;font-size:13px;color:var(--ts);margin-bottom:14px;min-height:20px;font-weight:500;}
+.scanner-status.success{color:var(--green);font-weight:700;}
+.scanner-status.error{color:var(--red);}
+.scanner-note{font-size:11px;color:var(--ts);text-align:center;line-height:1.6;}
+.scan-result-card{display:none;background:var(--green-l);border:1.5px solid var(--green);border-radius:var(--r-md);padding:16px;text-align:center;margin-bottom:14px;}
+.scan-result-card.error-card{background:var(--red-l);border-color:var(--red);}
+.scan-result-icon{font-size:32px;margin-bottom:8px;}
+.scan-result-card h4{font-size:15px;font-weight:700;color:var(--green-d);margin-bottom:4px;}
+.scan-result-card.error-card h4{color:var(--red);}
+.scan-result-card p{font-size:12px;color:var(--green-d);line-height:1.5;}
+.scan-result-card.error-card p{color:var(--red);}
+.checkin-code-boxes{display:flex;gap:6px;justify-content:center;margin-bottom:16px;}
+.checkin-digit{width:42px;height:52px;border:1.5px solid var(--cream-d);border-radius:var(--r-sm);text-align:center;font-size:20px;font-weight:700;font-family:var(--font);color:var(--tm);text-transform:uppercase;outline:none;}
+.checkin-digit:focus{border-color:var(--navy);}
+
+/* ══ GENERIC MODAL (Create Track / Manage Track) ══ */
+.modal-overlay.basic{align-items:flex-end;}
+@media (min-width:431px){ .modal-overlay.basic{align-items:center;} }
+.basic-modal{background:#fff;border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:430px;overflow:hidden;box-shadow:var(--shadow-lg);max-height:88vh;display:flex;flex-direction:column;}
+@media (min-width:431px){ .basic-modal{border-radius:var(--r-xl);} }
+.basic-modal-header{background:var(--navy);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.basic-modal-header h3{font-size:16px;font-weight:700;color:#fff;}
+.basic-modal-body{padding:20px;overflow-y:auto;}
+
+/* ══ ADMIN ══ */
+.a-header{background:var(--navy);padding:24px 20px 20px;}
+.a-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;}
+.a-header h2{font-size:18px;font-weight:700;color:#fff;}
+.a-header p{font-size:12px;color:rgba(255,255,255,.65);}
+.admin-tabs{display:flex;background:rgba(255,255,255,.12);border-radius:var(--r-md);padding:4px;margin-top:14px;}
+.admin-tab{flex:1;padding:9px 0;font-size:12px;font-weight:700;text-align:center;cursor:pointer;border:none;background:transparent;border-radius:9px;color:rgba(255,255,255,.75);font-family:var(--font);transition:.2s;}
+.admin-tab.active{background:#fff;color:var(--navy);}
+.admin-pane{display:none;}
+.admin-pane.active{display:block;}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.stat-card{background:#fff;border-radius:var(--r-md);border:.5px solid #E8DDD4;padding:14px 16px;text-align:center;box-shadow:var(--shadow);}
+.stat-num{font-size:28px;font-weight:700;color:var(--terra);}
+.stat-num.green{color:var(--green);}
+.stat-lbl{font-size:11px;color:var(--ts);font-weight:600;margin-top:3px;}
+.qr-mgmt-list{display:grid;gap:10px;}
+.qr-mgmt-card{background:#fff;border-radius:var(--r-md);border:.5px solid #E8DDD4;padding:14px 16px;box-shadow:var(--shadow);overflow:hidden;}
+.qr-mgmt-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.qr-mgmt-top-left{flex:1;min-width:0;}
+.qr-mgmt-top-actions{display:flex;gap:6px;flex-shrink:0;}
+.qr-mgmt-name{font-size:14px;font-weight:700;color:var(--tm);}
+.qr-mgmt-meta{font-size:11px;color:var(--ts);margin-top:1px;}
+.qr-status-pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;flex-shrink:0;}
+.qr-status-pill.inactive{background:var(--gray-l);color:var(--gray);}
+.qr-status-pill.active{background:var(--green-l);color:var(--green-d);}
+.qr-status-pill.expired{background:var(--amber-l);color:var(--amber);}
+.checkin-status-pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;flex-shrink:0;}
+.checkin-status-pill.inactive{background:var(--gray-l);color:var(--gray);}
+.checkin-status-pill.active{background:var(--purple-l);color:var(--purple-d);}
+.tabset{display:flex;gap:6px;margin-bottom:10px;}
+.subtab{flex:1;padding:8px 0;text-align:center;font-size:11px;font-weight:700;border-radius:8px;border:1.5px solid var(--cream-d);background:#fff;color:var(--ts);cursor:pointer;font-family:var(--font);}
+.subtab.active{background:var(--terra);border-color:var(--terra);color:#fff;}
+.subtab.active.checkin-active{background:var(--purple);border-color:var(--purple);}
+.qr-mgmt-body{display:grid;grid-template-columns:124px minmax(0,1fr);gap:12px;align-items:start;overflow:hidden;}
+.qr-display-wrap{display:flex;flex-direction:column;gap:8px;align-items:center;width:124px;max-width:124px;}
+.qr-display-box{width:124px;height:124px;background:#fff;border:1px solid #E8DDD4;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;padding:6px;}
+.qr-display-box img,.qr-display-box canvas{width:100%;height:100%;image-rendering:pixelated;}
+.code-display-box{width:124px;height:124px;background:var(--purple-l);border:1px solid var(--purple);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;gap:4px;}
+.code-display-box .code-text{font-size:20px;font-weight:700;letter-spacing:2px;color:var(--purple-d);}
+.code-display-box .code-text-label{font-size:9px;color:var(--purple-d);text-transform:uppercase;font-weight:700;letter-spacing:.5px;}
+.btn-download-qr{width:124px;padding:8px 8px;background:#fff;color:var(--navy);border:1.5px solid var(--blue);border-radius:var(--r-sm);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:5px;transition:background .2s;white-space:nowrap;}
+.btn-download-qr:hover{background:var(--blue-l);}
+.btn-download-history{width:100%;padding:9px 12px;background:#fff;color:var(--green-d);border:1.5px solid var(--green);border-radius:var(--r-sm);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px;transition:background .2s;white-space:nowrap;}
+.btn-download-history:hover{background:var(--green-l);}
+@media (max-width:380px){
+  .qr-mgmt-body{grid-template-columns:1fr;}
+  .qr-display-wrap{width:100%;max-width:none;}
+  .qr-display-box,.code-display-box{width:150px;height:150px;margin:0 auto;}
+  .btn-download-qr{width:150px;margin:0 auto;}
+}
+.qr-controls{display:flex;flex-direction:column;gap:7px;min-width:0;overflow:hidden;}
+.duration-row{display:grid;grid-template-columns:1fr;gap:7px;align-items:stretch;}
+.duration-select{width:100%;min-width:0;padding:8px 10px;border:1.5px solid var(--cream-d);border-radius:var(--r-sm);font-size:12px;font-family:var(--font);color:var(--tm);background:#fff;outline:none;}
+.duration-select:focus{border-color:var(--terra);}
+.btn-activate{width:100%;padding:9px 12px;background:var(--terra);color:#fff;border:none;border-radius:var(--r-sm);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .2s;flex-shrink:0;white-space:nowrap;}
+.btn-activate.checkin-btn{background:var(--purple);}
+.btn-activate:hover{opacity:.9;}
+.btn-activate:disabled{opacity:.4;cursor:not-allowed;}
+.btn-deactivate{padding:9px 14px;background:#fff;color:var(--red);border:1.5px solid var(--red);border-radius:var(--r-sm);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px;transition:background .2s;width:100%;}
+.btn-deactivate:hover{background:var(--red-l);}
+.countdown{font-size:12px;font-weight:700;color:var(--amber);display:flex;align-items:center;gap:4px;}
+.countdown.expired{color:var(--red);}
+.countdown i{font-size:14px;}
+.scan-count-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;background:var(--blue-l);color:var(--blue-d);border-radius:99px;padding:3px 9px;}
+
+/* ── Session inline edit form ── */
+.sess-edit-form{background:var(--cream);border-radius:var(--r-md);padding:12px;margin-top:10px;border:1.5px solid var(--terra-l);display:none;flex-direction:column;gap:9px;}
+.sess-edit-form.open{display:flex;}
+.edit-form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.edit-form-input{width:100%;padding:9px 11px;border:1.5px solid var(--cream-d);border-radius:var(--r-sm);font-size:12px;font-family:var(--font);color:var(--tm);background:#fff;outline:none;}
+.edit-form-input:focus{border-color:var(--terra);}
+.edit-form-select{width:100%;padding:9px 11px;border:1.5px solid var(--cream-d);border-radius:var(--r-sm);font-size:12px;font-family:var(--font);color:var(--tm);background:#fff;outline:none;appearance:none;}
+.edit-form-select:focus{border-color:var(--terra);}
+.edit-form-actions{display:flex;gap:7px;}
+.btn-save{flex:1;padding:9px;background:var(--terra);color:#fff;border:none;border-radius:var(--r-sm);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:5px;transition:opacity .2s;}
+.btn-save:hover{opacity:.9;}
+.btn-cancel-edit{padding:9px 14px;background:#fff;color:var(--ts);border:1.5px solid var(--cream-d);border-radius:var(--r-sm);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);}
+.btn-cancel-edit:hover{background:var(--cream-d);}
+
+/* ── Inline icon buttons on session card ── */
+.btn-icon{background:none;border:1.5px solid var(--cream-d);border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--ts);transition:.2s;flex-shrink:0;}
+.btn-icon:hover{background:var(--cream-d);}
+.btn-icon.danger{border-color:#FCA5A5;color:var(--red);}
+.btn-icon.danger:hover{background:var(--red-l);}
+
+/* ── Add Session button / form ── */
+.btn-add-session{width:100%;padding:11px;background:#fff;color:var(--terra);border:1.5px dashed var(--terra-l);border-radius:var(--r-md);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px;transition:background .2s;}
+.btn-add-session:hover{background:var(--terra-p);}
+.new-session-form{background:#fff;border-radius:var(--r-md);border:1.5px solid var(--terra);padding:16px;margin-bottom:10px;display:none;flex-direction:column;gap:10px;box-shadow:var(--shadow);}
+.new-session-form.open{display:flex;}
+.new-session-form h4{font-size:13px;font-weight:700;color:var(--tm);}
+.new-form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.new-form-input{width:100%;padding:10px 12px;border:1.5px solid var(--cream-d);border-radius:var(--r-sm);font-size:13px;font-family:var(--font);color:var(--tm);background:#fff;outline:none;}
+.new-form-input:focus{border-color:var(--terra);}
+.new-form-select{width:100%;padding:10px 12px;border:1.5px solid var(--cream-d);border-radius:var(--r-sm);font-size:13px;font-family:var(--font);color:var(--tm);background:#fff;outline:none;appearance:none;}
+.new-form-select:focus{border-color:var(--terra);}
+.new-form-actions{display:flex;gap:8px;}
+.btn-create{flex:1;padding:10px;background:var(--terra);color:#fff;border:none;border-radius:var(--r-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .2s;}
+.btn-create:hover{opacity:.9;}
+.btn-create:disabled{opacity:.4;cursor:not-allowed;}
+.btn-cancel-new{padding:10px 14px;background:#fff;color:var(--ts);border:1.5px solid var(--cream-d);border-radius:var(--r-sm);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);}
+
+/* ── Reward template editor ── */
+.template-editor{display:flex;flex-direction:column;gap:10px;}
+.milestone-row{background:var(--cream);border-radius:var(--r-md);padding:12px;display:flex;flex-direction:column;gap:8px;border:1.5px solid var(--cream-d);}
+.milestone-row-top{display:grid;grid-template-columns:70px 1fr 90px auto;gap:7px;align-items:center;}
+.milestone-row-top input,.milestone-row-top select{width:100%;padding:8px 9px;border:1.5px solid var(--cream-d);border-radius:8px;font-size:12px;font-family:var(--font);color:var(--tm);background:#fff;outline:none;}
+.milestone-row-top input:focus,.milestone-row-top select:focus{border-color:var(--terra);}
+
+/* Admin search / filter / participants */
+.search-wrap{position:relative;margin-bottom:12px;}
+.search-input{width:100%;padding:12px 16px 12px 42px;border:1.5px solid var(--cream-d);border-radius:var(--r-md);font-size:14px;font-family:var(--font);color:var(--tm);background:#fff;outline:none;transition:border-color .2s;}
+.search-input:focus{border-color:var(--terra);}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--ts);font-size:18px;pointer-events:none;}
+.filter-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;}
+.filter-row::-webkit-scrollbar{display:none;}
+.fbtn{flex-shrink:0;padding:8px 14px;border-radius:99px;border:1.5px solid var(--cream-d);background:#fff;font-size:12px;font-weight:700;color:var(--ts);cursor:pointer;font-family:var(--font);white-space:nowrap;transition:.2s;}
+.fbtn.active{background:var(--terra);border-color:var(--terra);color:#fff;}
+.a-table{display:flex;flex-direction:column;gap:10px;}
+.a-card{background:#fff;border-radius:var(--r-md);border:.5px solid #E8DDD4;padding:16px;box-shadow:var(--shadow);}
+.a-card-top{display:flex;align-items:center;gap:11px;margin-bottom:12px;}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--terra-p);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--terra);flex-shrink:0;}
+.a-pname{font-size:14px;font-weight:700;color:var(--tm);}
+.a-pmeta{font-size:11px;color:var(--ts);}
+.a-stamp-bar{margin-bottom:12px;}
+.a-stamp-label{display:flex;justify-content:space-between;margin-bottom:4px;}
+.a-stamp-lbl{font-size:11px;font-weight:600;color:var(--ts);}
+.a-stamp-val{font-size:11px;font-weight:700;color:var(--tm);}
+.mini-bar{height:6px;background:var(--cream-d);border-radius:99px;}
+.mini-fill{height:100%;background:var(--terra);border-radius:99px;}
+.stamp-history{margin-bottom:10px;border-radius:var(--r-sm);background:var(--cream);overflow:hidden;}
+.stamp-history-title{font-size:11px;font-weight:700;color:var(--ts);text-transform:uppercase;letter-spacing:.8px;padding:9px 10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;list-style:none;}
+.stamp-history-title::-webkit-details-marker{display:none;}
+.stamp-history-title::after{content:'⌄';font-size:13px;color:var(--terra);transition:transform .2s;}
+.stamp-history[open] .stamp-history-title::after{transform:rotate(180deg);}
+.history-count{font-size:10px;font-weight:700;letter-spacing:0;text-transform:none;border-radius:99px;background:var(--blue-l);color:var(--blue-d);padding:3px 8px;margin-left:auto;}
+.stamp-history-rows{display:flex;flex-direction:column;gap:4px;padding:0 8px 8px;}
+.shrow{display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 8px;border-radius:7px;background:var(--cream);}
+.shrow-name{color:var(--tm);font-weight:600;}
+.shrow-ts{color:var(--ts);display:flex;align-items:center;gap:3px;}
+.shrow-ts i{font-size:11px;color:var(--terra-l);}
+.reward-rows{display:flex;flex-direction:column;gap:7px;}
+.rrow{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border-radius:var(--r-sm);background:var(--cream);gap:8px;}
+.rleft{display:flex;align-items:center;gap:8px;min-width:0;}
+.ricon{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--navy);color:#fff;font-size:13px;}
+.rname{font-size:12px;font-weight:700;color:var(--tm);}
+.rsub{font-size:10px;color:var(--ts);}
+.rbadge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;white-space:nowrap;}
+.rbadge.eligible{background:var(--terra-p);color:#7A2E0A;}
+.rbadge.done{background:var(--green-l);color:var(--green-d);}
+.rbadge.locked{background:var(--gray-l);color:var(--gray);}
+.btn-mark{font-size:11px;font-weight:700;padding:6px 12px;border-radius:99px;border:1.5px solid var(--terra);background:#fff;color:var(--terra);cursor:pointer;font-family:var(--font);transition:.2s;white-space:nowrap;}
+.btn-mark:hover{background:var(--terra-p);}
+.redeemed-date{font-size:10px;color:var(--ts);margin-top:2px;}
+.no-results{text-align:center;padding:32px 20px;color:var(--ts);font-size:14px;}
+.no-results i{font-size:40px;display:block;margin-bottom:10px;color:var(--terra-l);}
+
+/* ── Track admins list (Manage Track modal) ── */
+.admin-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.admin-list-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--cream);border-radius:var(--r-sm);}
+.admin-list-row .avatar{width:30px;height:30px;font-size:11px;}
+.admin-list-row-name{font-size:12px;font-weight:700;color:var(--tm);}
+.admin-list-row-email{font-size:10px;color:var(--ts);}
+.danger-zone{margin-top:18px;padding-top:16px;border-top:1px solid var(--cream-d);}
+.danger-zone h4{font-size:12px;font-weight:700;color:var(--red);margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px;}
+.btn-danger{width:100%;padding:13px;background:#fff;color:var(--red);border:1.5px solid var(--red);border-radius:var(--r-md);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s;}
+.btn-danger:hover{background:var(--red-l);}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ SCREEN: AUTH ══ -->
+<div class="screen active" id="screen-auth">
+  <div class="auth-hero">
+    <div class="auth-hero-icon"><i class="ti ti-stamp"></i></div>
+    <h1>Stamp Journey</h1>
+    <h2>Multi-Track Edition</h2>
+    <p>Join one or more tracks, collect stamps at sessions, and unlock rewards.</p>
+  </div>
+  <div class="auth-body">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')">Create Account</button>
+    </div>
+    <div id="form-login">
+      <div id="login-error" class="error-msg"></div>
+      <div class="form-group">
+        <label class="form-label">Organisation Email</label>
+        <input class="form-input" id="login-email" type="email" placeholder="you@company.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="login-password" type="password" placeholder="••••••••">
+      </div>
+      <button class="btn-primary" id="btn-login" onclick="handleLogin()">
+        <i class="ti ti-login"></i> Sign In
+      </button>
+      <div class="auth-note" style="margin-top:16px;">
+        <strong>Demo logins:</strong><br>
+        Participant: <code>arisa@company.com</code> / <code>pass123</code><br>
+        Track Manager: <code>admin@company.com</code> / <code>admin123</code>
+      </div>
+    </div>
+    <div id="form-signup" style="display:none;">
+      <div id="signup-error" class="error-msg"></div>
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" id="su-name" type="text" placeholder="e.g. Arisa Tanaka">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Facility</label>
+        <select class="form-select" id="su-facility">
+          <option value="">Select your facility</option>
+          <option>Bangkok HQ</option>
+          <option>Chiang Mai Branch</option>
+          <option>Phuket Office</option>
+          <option>Remote / WFH</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Organisation Email</label>
+        <input class="form-input" id="su-email" type="email" placeholder="you@company.com">
+        <p class="form-hint">Use your official company email address.</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="su-password" type="password" placeholder="Min. 8 characters">
+      </div>
+      <button class="btn-primary" id="btn-signup" onclick="handleSignUp()">
+        <i class="ti ti-user-plus"></i> Create Account
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: DASHBOARD ══ -->
+<div class="screen" id="screen-dashboard">
+  <div class="dash-header">
+    <div class="p-header-top">
+      <div class="p-header-brand">
+        <div class="p-header-icon"><i class="ti ti-stamp"></i></div>
+        <div>
+          <div class="p-header-title">Stamp Journey</div>
+          <div class="p-header-subtitle">My Dashboard</div>
+        </div>
+      </div>
+      <button class="btn-ghost" onclick="logout()"><i class="ti ti-logout" style="font-size:13px;"></i> Sign out</button>
+    </div>
+    <div class="p-header-welcome" id="d-welcome">Hello 👋</div>
+    <div class="p-header-sub" id="d-email"></div>
+  </div>
+  <div class="p-body">
+    <div class="section">
+      <div class="join-card">
+        <h4><i class="ti ti-ticket" style="color:var(--terra);margin-right:5px;"></i>Join a Track</h4>
+        <p>Enter the 6-character Access Code shared by the track's facilitator.</p>
+        <div id="join-error" class="error-msg"></div>
+        <div class="join-row">
+          <input class="form-input mono" id="join-access-code" type="text" maxlength="6" placeholder="ABC123">
+          <button class="btn-join" id="btn-join-track" onclick="handleJoinTrack()">Join</button>
+        </div>
+      </div>
+      <button class="btn-create-track" id="btn-create-track" style="display:none;" onclick="openCreateTrackModal()">
+        <i class="ti ti-folder-plus"></i> Create New Track
+      </button>
+      <div class="slabel">My Tracks</div>
+      <div class="track-list" id="dash-track-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: CREATE TRACK ══ -->
+<div class="modal-overlay basic" id="create-track-overlay">
+  <div class="basic-modal">
+    <div class="basic-modal-header">
+      <h3><i class="ti ti-folder-plus" style="margin-right:6px;"></i>Create New Track</h3>
+      <button class="btn-close-modal" onclick="closeCreateTrackModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="basic-modal-body">
+      <div id="create-track-form">
+        <div id="create-track-error" class="error-msg"></div>
+        <div class="form-group">
+          <label class="form-label">Track Name</label>
+          <input class="form-input" id="ct-track-name" type="text" placeholder="e.g. AI Community Bangkok">
+        </div>
+        <button class="btn-primary" id="btn-do-create-track" onclick="submitCreateTrack()">
+          <i class="ti ti-check"></i> Create Track
+        </button>
+      </div>
+      <div id="create-track-result" style="display:none;">
+        <p style="font-size:13px;color:var(--ts);line-height:1.6;">Your track has been created! Share this Access Code with admins and participants so they can join:</p>
+        <div class="access-code-display">
+          <div class="code-big" id="ct-result-code">ABC123</div>
+          <div class="code-label">ACCESS CODE</div>
+          <button class="btn-copy-code" onclick="copyAccessCode()"><i class="ti ti-copy"></i> Copy code</button>
+        </div>
+        <button class="btn-primary" onclick="closeCreateTrackModal()">
+          <i class="ti ti-arrow-right"></i> Go to Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: MANAGE TRACK (Track Manager) ══ -->
+<div class="modal-overlay basic" id="manage-track-overlay">
+  <div class="basic-modal">
+    <div class="basic-modal-header">
+      <h3><i class="ti ti-settings" style="margin-right:6px;"></i><span id="mt-track-name">Manage Track</span></h3>
+      <button class="btn-close-modal" onclick="closeManageTrackModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="basic-modal-body">
+      <div id="manage-track-error" class="error-msg"></div>
+      <div id="manage-track-success" class="success-msg"></div>
+
+      <div class="access-code-display" style="margin-top:0;">
+        <div class="code-big" id="mt-access-code">ABC123</div>
+        <div class="code-label">ACCESS CODE</div>
+        <button class="btn-copy-code" onclick="copyManageAccessCode()"><i class="ti ti-copy"></i> Copy code</button>
+      </div>
+
+      <div class="slabel" style="margin-top:18px;">Track Admins</div>
+      <div class="admin-list" id="mt-admin-list"></div>
+      <div class="form-group">
+        <label class="form-label">Add Admin by Email</label>
+        <div class="join-row">
+          <input class="form-input" id="mt-new-admin-email" type="email" placeholder="colleague@company.com">
+          <button class="btn-join" id="btn-add-admin" onclick="submitAddTrackAdmin()">Add</button>
+        </div>
+        <p class="form-hint">They must already have a Stamp Journey account.</p>
+      </div>
+
+      <div class="danger-zone">
+        <h4>Danger Zone</h4>
+        <button class="btn-danger" onclick="confirmDeleteTrack()">
+          <i class="ti ti-trash"></i> Delete This Track
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: PARTICIPANT TRACK VIEW ══ -->
+<div class="screen" id="screen-participant">
+  <div class="p-header">
+    <div class="p-header-top">
+      <div class="p-header-brand">
+        <button class="btn-back" onclick="goToDashboard()"><i class="ti ti-arrow-left"></i></button>
+        <div>
+          <div class="p-header-title" id="p-track-name">Track</div>
+          <div class="p-header-subtitle">Stamp Journey</div>
+        </div>
+      </div>
+      <button class="btn-ghost" onclick="logout()"><i class="ti ti-logout" style="font-size:13px;"></i> Sign out</button>
+    </div>
+    <div class="p-header-welcome" id="p-welcome">Hello 👋</div>
+    <div class="p-header-sub" id="p-facility"></div>
+  </div>
+  <div class="p-body">
+    <div class="section">
+      <div class="slabel">Your stamp card</div>
+      <div class="card">
+        <div class="ms-row" id="p-milestone-row"></div>
+        <div class="track">
+          <div class="track-lbl" id="p-track-lbl"></div>
+          <div class="tline"><div class="tfill" id="p-fill"></div></div>
+          <div class="tdots" id="p-dots"></div>
+        </div>
+        <div class="sgrid" id="p-stamps"></div>
+        <p class="ptxt">Collected: <strong id="p-count">0</strong> / <span id="p-total">10</span> stamps</p>
+        <div class="qr-section">
+          <h4>Your rewards</h4>
+          <p>Show your QR code to the facilitator to redeem. Only the facilitator can mark it as redeemed.</p>
+          <div class="qr-cards" id="p-reward-cards"></div>
+        </div>
+      </div>
+    </div>
+    <div class="section mt-16">
+      <div class="slabel">Sessions</div>
+      <div class="sess-grid" id="p-sessions"></div>
+    </div>
+    <div class="p-actions">
+      <div id="p-milestone-msgs"></div>
+      <button class="btn-scan" id="btn-open-scanner" onclick="openScanner()">
+        <i class="ti ti-qrcode-scan"></i> Scan Session QR Code
+      </button>
+      <button class="btn-checkin" id="btn-open-checkin" onclick="openCheckInModal()">
+        <i class="ti ti-keyboard"></i> Check In With Code
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: ADMIN (Track Admin panel) ══ -->
+<div class="screen" id="screen-admin">
+  <div class="a-header">
+    <div class="a-header-top">
+      <div class="p-header-brand">
+        <button class="btn-back" onclick="goToDashboard()"><i class="ti ti-arrow-left"></i></button>
+        <div>
+          <h2 id="a-track-name"><i class="ti ti-shield-check" style="font-size:16px;margin-right:5px;"></i>Admin Panel</h2>
+          <p id="a-logged-as"></p>
+        </div>
+      </div>
+      <button class="btn-ghost" onclick="logout()"><i class="ti ti-logout" style="font-size:13px;"></i> Sign out</button>
+    </div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" id="atab-sessions" onclick="setAdminTab('sessions')">Sessions</button>
+      <button class="admin-tab" id="atab-participants" onclick="setAdminTab('participants')">Participants</button>
+      <button class="admin-tab" id="atab-rewards" onclick="setAdminTab('rewards')">Rewards</button>
+    </div>
+  </div>
+  <div class="p-body">
+
+    <!-- ── PANE: SESSIONS / QR / CHECK-IN ── -->
+    <div class="admin-pane active" id="apane-sessions">
+      <div class="section">
+        <div class="slabel">Overview</div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-num" id="a-total">0</div><div class="stat-lbl">Total participants</div></div>
+          <div class="stat-card"><div class="stat-num green" id="a-redeemed">0</div><div class="stat-lbl">Rewards redeemed</div></div>
+        </div>
+      </div>
+      <div class="section mt-16">
+        <div class="slabel">Sessions &amp; Check-In</div>
+        <button class="btn-download-history" onclick="downloadAllSessionScanHistory()" style="margin-bottom:10px;">
+          <i class="ti ti-table-export"></i> Download all scan history
+        </button>
+        <button class="btn-add-session" id="btn-show-new-form" onclick="toggleNewSessionForm(true)">
+          <i class="ti ti-plus"></i> Add New Session
+        </button>
+        <div class="new-session-form" id="new-session-form">
+          <h4><i class="ti ti-plus" style="font-size:13px;color:var(--terra);margin-right:4px;"></i>New Session</h4>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" style="font-size:11px;">Session Name</label>
+            <input class="new-form-input" id="new-sess-name" type="text" placeholder="e.g. Session 11">
+          </div>
+          <div class="new-form-row">
+            <div>
+              <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Type</label>
+              <select class="new-form-select" id="new-sess-type">
+                <option value="Sharing">Sharing</option>
+                <option value="Workshop">Workshop</option>
+                <option value="Keynote">Keynote</option>
+                <option value="Panel">Panel</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Icon</label>
+              <select class="new-form-select" id="new-sess-icon">
+                <option value="ti-brain">Brain</option>
+                <option value="ti-tools">Tools</option>
+                <option value="ti-users">Users</option>
+                <option value="ti-layout-dashboard">Dashboard</option>
+                <option value="ti-shield-check">Shield</option>
+                <option value="ti-rocket">Rocket</option>
+                <option value="ti-sparkles">Sparkles</option>
+                <option value="ti-pencil">Pencil</option>
+                <option value="ti-chart-bar">Chart</option>
+                <option value="ti-confetti">Confetti</option>
+                <option value="ti-bulb">Bulb</option>
+                <option value="ti-star">Star</option>
+                <option value="ti-award">Award</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Description</label>
+            <input class="new-form-input" id="new-sess-desc" type="text" placeholder="Short description of this session">
+          </div>
+          <div class="new-form-row">
+            <div>
+              <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Location</label>
+              <input class="new-form-input" id="new-sess-loc" type="text" placeholder="e.g. Hall A">
+            </div>
+            <div>
+              <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Time</label>
+              <input class="new-form-input" id="new-sess-time" type="text" placeholder="e.g. 10:00 AM">
+            </div>
+          </div>
+          <div class="new-form-actions">
+            <button class="btn-create" id="btn-create-session" onclick="createSession()">
+              <i class="ti ti-check"></i> Create Session
+            </button>
+            <button class="btn-cancel-new" onclick="toggleNewSessionForm(false)">Cancel</button>
+          </div>
+        </div>
+        <div class="qr-mgmt-list" id="qr-mgmt-list"></div>
+      </div>
+    </div>
+
+    <!-- ── PANE: PARTICIPANTS ── -->
+    <div class="admin-pane" id="apane-participants">
+      <div class="section">
+        <div class="search-wrap">
+          <i class="ti ti-search search-icon"></i>
+          <input class="search-input" id="a-search" type="text" placeholder="Search by name or email…" oninput="renderAdminParticipants()">
+        </div>
+        <div class="filter-row" id="a-filter-row">
+          <button class="fbtn active" onclick="setFilter(this,'all')">All</button>
+          <button class="fbtn" onclick="setFilter(this,'eligible')">Eligible — not redeemed</button>
+        </div>
+      </div>
+      <div class="section mt-12">
+        <div class="a-table" id="a-table"></div>
+      </div>
+    </div>
+
+    <!-- ── PANE: REWARD TEMPLATE ── -->
+    <div class="admin-pane" id="apane-rewards">
+      <div class="section">
+        <div class="slabel">Reward Template</div>
+        <div class="card">
+          <p style="font-size:12px;color:var(--ts);margin-bottom:14px;line-height:1.6;">
+            Define how many stamps participants need to collect in total, and which
+            milestones along the way unlock a reward.
+          </p>
+          <div class="form-group">
+            <label class="form-label">Total Stamps in Journey</label>
+            <input class="form-input" id="tpl-total-stamps" type="number" min="1" value="10">
+          </div>
+          <div class="slabel" style="margin-top:6px;">Milestones</div>
+          <div class="template-editor" id="tpl-milestones"></div>
+          <button class="btn-add-session" style="margin-top:10px;margin-bottom:0;" onclick="addMilestoneRow()">
+            <i class="ti ti-plus"></i> Add Milestone
+          </button>
+          <button class="btn-primary" style="margin-top:14px;" id="btn-save-template" onclick="saveRewardTemplate()">
+            <i class="ti ti-check"></i> Save Reward Template
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ QR SCANNER MODAL ══ -->
+<div class="modal-overlay" id="scanner-overlay">
+  <div class="scanner-modal">
+    <div class="scanner-header">
+      <h3><i class="ti ti-qrcode-scan" style="margin-right:6px;"></i>Scan Session QR</h3>
+      <button class="btn-close-modal" onclick="closeScanner()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="scanner-body">
+      <div id="scan-result-card" class="scan-result-card" style="display:none;">
+        <div class="scan-result-icon" id="scan-result-icon">✅</div>
+        <h4 id="scan-result-title">Stamp collected!</h4>
+        <p id="scan-result-body"></p>
+      </div>
+      <div id="scanner-live-area">
+        <div class="scanner-viewfinder">
+          <video id="scanner-video" autoplay muted playsinline></video>
+          <canvas id="scanner-canvas"></canvas>
+          <div class="scan-guide"><div class="scan-guide-box"></div></div>
+        </div>
+        <div class="scanner-status" id="scanner-status">Initialising camera…</div>
+        <p class="scanner-note">Point your camera at the QR code displayed by the facilitator.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CHECK-IN CODE MODAL ══ -->
+<div class="modal-overlay" id="checkin-overlay">
+  <div class="scanner-modal">
+    <div class="scanner-header">
+      <h3><i class="ti ti-keyboard" style="margin-right:6px;"></i>Check In With Code</h3>
+      <button class="btn-close-modal" onclick="closeCheckInModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="scanner-body">
+      <div id="checkin-result-card" class="scan-result-card" style="display:none;">
+        <div class="scan-result-icon" id="checkin-result-icon">✅</div>
+        <h4 id="checkin-result-title">Stamp collected!</h4>
+        <p id="checkin-result-body"></p>
+      </div>
+      <div id="checkin-live-area">
+        <p style="font-size:13px;color:var(--ts);margin-bottom:14px;line-height:1.5;text-align:center;">
+          Enter the 6-character check-in code the facilitator shared for this session.
+        </p>
+        <div class="checkin-code-boxes" id="checkin-boxes"></div>
+        <div id="checkin-error" class="error-msg" style="text-align:center;"></div>
+        <button class="btn-primary" id="btn-submit-checkin" onclick="submitCheckInCode()">
+          <i class="ti ti-check"></i> Submit Code
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════ -->
+<script>
+'use strict';
+
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwiNiqAj0qZjy9XrSsdMBy1nOkSvVxPDZIJt7fsPWL-xOj7qNxQKAd5Tm9mAZdHLluY8A/exec';
+
+var currentUser    = null;   // { id, name, facility, email, isTrackManager }
+var myTracks        = [];    // dashboard list: [{ id, name, accessCode, template, role, stamps, totalStamps }]
+var activeTrack     = null;  // the track object the user is currently viewing (dashboard summary, augmented)
+var activeProfile   = null;  // participant profile for activeTrack: { stamps, claimedSessions, scanTimestamps, milestones, template }
+var activeSessions  = [];    // sessions for activeTrack (participant or admin view)
+var adminParticipants = [];
+var adminAdmins        = [];
+var activeFilter    = 'all';
+var scanStream       = null;
+var scanAnimFrame    = null;
+var scanDone         = false;
+var countdownTimers  = {};
+var lastCreatedAccessCode = '';
+
+// ── API ──
+function apiRequest(action, payload) {
+  if (!payload) payload = {};
+  payload.action = action;
+  if (currentUser && currentUser.id) {
+    if (!payload.userId) payload.userId = currentUser.id;
+    if (!payload.email)  payload.email  = currentUser.email;
+  }
+  return fetch(GAS_URL, {
+    method: 'POST', redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r){ if (!r.ok) throw new Error('Network error'); return r.json(); })
+  .then(function(res){ if (res.ok !== true) throw new Error(res.message || 'Request failed.'); return res; })
+  .catch(function(err){ throw new Error(err.message || String(err)); });
+}
+
+function busy(btnId, label) {
+  var b = document.getElementById(btnId); if (!b) return;
+  b.dataset.orig = b.innerHTML; b.disabled = true;
+  b.innerHTML = '<i class="ti ti-loader-2"></i> ' + label;
+}
+function restore(btnId) {
+  var b = document.getElementById(btnId); if (!b) return;
+  if (b.dataset.orig) b.innerHTML = b.dataset.orig; b.disabled = false;
+}
+
+// ── Normalise ──
+function normalizeUser(u) {
+  return {
+    id: String(u.id||''), name: String(u.name||''),
+    facility: String(u.facility||''), email: String(u.email||'').toLowerCase(),
+    isTrackManager: Boolean(u.isTrackManager)
+  };
+}
+function normalizeTrackSummary(t) {
+  return {
+    id: String(t.id||''), name: String(t.name||''), accessCode: String(t.accessCode||''),
+    template: t.template || { totalStamps: 10, milestones: [] },
+    role: String(t.role||'participant').toLowerCase(),
+    stamps: Number(t.stamps||0), totalStamps: Number(t.totalStamps||t.template && t.template.totalStamps||10),
+    createdBy: String(t.createdBy||''), createdAt: String(t.createdAt||'')
+  };
+}
+function normalizeSession(s) {
+  return {
+    id: String(s.id||''), trackId: String(s.trackId||''),
+    name: String(s.name||'Session'), type: String(s.type||'Sharing'),
+    desc: String(s.desc||''), icon: String(s.icon||'ti-brain'),
+    location: String(s.location||''), time: String(s.time||''),
+    qrActive: Boolean(s.qrActive), qrExpiresAt: Number(s.qrExpiresAt||0), qrToken: String(s.qrToken||''),
+    codeActive: Boolean(s.codeActive), codeExpiresAt: Number(s.codeExpiresAt||0), codeValue: String(s.codeValue||'')
+  };
+}
+
+// ── Date formatting: return DD/MM/YYYY from stored timestamp string ──
+function formatDateOnly(tsStr) {
+  if (!tsStr) return '';
+  var d = new Date(tsStr);
+  if (!isNaN(d.getTime())) {
+    var dd = String(d.getDate()).padStart(2,'0');
+    var mm = String(d.getMonth()+1).padStart(2,'0');
+    var yyyy = d.getFullYear();
+    return dd + '/' + mm + '/' + yyyy;
+  }
+  var months = {Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+  var parts = tsStr.split(' ');
+  if (parts.length >= 3) {
+    var day   = String(parts[0]).padStart(2,'0');
+    var mon   = months[parts[1]] ? String(months[parts[1]]).padStart(2,'0') : '00';
+    var year  = parts[2];
+    return day + '/' + mon + '/' + year;
+  }
+  return tsStr;
+}
+
+function escapeHtml(s) {
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function initialsOf(name) {
+  return String(name||'').split(' ').filter(Boolean).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)||'U';
+}
+
+// ── Session restore ──
+(function init() {
+  var saved = localStorage.getItem('stampJourneySession');
+  if (saved) {
+    try { currentUser = normalizeUser(JSON.parse(saved)); bootUser(); }
+    catch(e) { localStorage.removeItem('stampJourneySession'); }
+  }
+})();
+
+// ── Auth ──
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(function(el,i){
+    el.classList.toggle('active',['login','signup'][i]===tab);
+  });
+  document.getElementById('form-login').style.display  = tab==='login'  ? 'block' : 'none';
+  document.getElementById('form-signup').style.display = tab==='signup' ? 'block' : 'none';
+}
+function showErr(id, msg) {
+  var el = document.getElementById(id);
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(function(){ el.style.display='none'; }, 5000);
+}
+async function handleLogin() {
+  busy('btn-login','Signing in…');
+  try {
+    var email    = document.getElementById('login-email').value.trim().toLowerCase();
+    var password = document.getElementById('login-password').value;
+    if (!email || !password) { showErr('login-error','Enter your email and password.'); return; }
+    var data = await apiRequest('login', { email, password });
+    finishAuth(data);
+  } catch(e) { showErr('login-error', e.message); }
+  finally { restore('btn-login'); }
+}
+async function handleSignUp() {
+  busy('btn-signup','Creating…');
+  try {
+    var name     = document.getElementById('su-name').value.trim();
+    var facility = document.getElementById('su-facility').value;
+    var email    = document.getElementById('su-email').value.trim().toLowerCase();
+    var password = document.getElementById('su-password').value;
+    if (!name)                          { showErr('signup-error','Please enter your full name.'); return; }
+    if (!facility)                      { showErr('signup-error','Please select your facility.'); return; }
+    if (!email || !email.includes('@')) { showErr('signup-error','Enter a valid email.'); return; }
+    if (password.length < 8)            { showErr('signup-error','Password must be at least 8 characters.'); return; }
+    var data = await apiRequest('signup', { name, facility, email, password });
+    finishAuth(data);
+  } catch(e) { showErr('signup-error', e.message); }
+  finally { restore('btn-signup'); }
+}
+function finishAuth(data) {
+  currentUser = normalizeUser(data.user);
+  localStorage.setItem('stampJourneySession', JSON.stringify(currentUser));
+  bootUser();
+}
+function logout() {
+  localStorage.removeItem('stampJourneySession');
+  currentUser = null; myTracks = []; activeTrack = null; activeProfile = null; activeSessions = [];
+  adminParticipants = []; adminAdmins = [];
+  Object.values(countdownTimers).forEach(clearInterval); countdownTimers = {};
+  showScreen('auth');
+}
+async function bootUser() {
+  if (!currentUser) return;
+  await loadDashboard();
+  showScreen('dashboard');
+}
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('screen-'+name).classList.add('active');
+}
+
+// ══ DASHBOARD ══
+
+async function loadDashboard() {
+  try {
+    var data = await apiRequest('getDashboard', {});
+    currentUser = normalizeUser(data.user);
+    localStorage.setItem('stampJourneySession', JSON.stringify(currentUser));
+    myTracks = (data.tracks||[]).map(normalizeTrackSummary);
+    renderDashboard();
+  } catch(e) { console.error('loadDashboard:', e); }
+}
+
+function renderDashboard() {
+  document.getElementById('d-welcome').textContent = 'Hello, ' + (currentUser.name.split(' ')[0]||currentUser.name) + ' 👋';
+  document.getElementById('d-email').textContent    = currentUser.email;
+  document.getElementById('btn-create-track').style.display = currentUser.isTrackManager ? 'flex' : 'none';
+
+  var list = document.getElementById('dash-track-list');
+  list.innerHTML = '';
+  if (!myTracks.length) {
+    list.innerHTML = '<div class="empty-state"><i class="ti ti-map-off"></i><p>You haven\'t joined any tracks yet.<br>Enter an Access Code above to get started.</p></div>';
+    return;
+  }
+  myTracks.forEach(function(t) {
+    var card = document.createElement('div');
+    card.className = 'track-card';
+    var isAdmin = t.role === 'admin';
+    var progressHtml = !isAdmin
+      ? '<div class="track-card-progress">' + t.stamps + ' / ' + t.totalStamps + ' stamps</div>'
+      : '<div class="track-card-progress">Access code: ' + t.accessCode + '</div>';
+    card.innerHTML =
+      '<div class="track-card-icon ' + (isAdmin?'admin':'participant') + '"><i class="ti ' + (isAdmin?'ti-shield-check':'ti-stamp') + '"></i></div>' +
+      '<div class="track-card-body">' +
+        '<div class="track-card-name">' + escapeHtml(t.name) + '</div>' +
+        '<div class="track-card-meta"><span class="role-pill ' + t.role + '">' + t.role + '</span></div>' +
+        progressHtml +
+      '</div>' +
+      '<div class="track-card-chevron"><i class="ti ti-chevron-right"></i></div>';
+    card.onclick = function() { openTrack(t.id, t.role); };
+    list.appendChild(card);
+  });
+}
+
+async function handleJoinTrack() {
+  busy('btn-join-track','Joining…');
+  try {
+    var code = document.getElementById('join-access-code').value.trim().toUpperCase();
+    if (code.length !== 6) { showErr('join-error','Enter the 6-character access code.'); return; }
+    var data = await apiRequest('joinTrack', { accessCode: code });
+    myTracks = (data.tracks||[]).map(normalizeTrackSummary);
+    document.getElementById('join-access-code').value = '';
+    renderDashboard();
+  } catch(e) { showErr('join-error', e.message); }
+  finally { restore('btn-join-track'); }
+}
+
+function goToDashboard() {
+  Object.values(countdownTimers).forEach(clearInterval); countdownTimers = {};
+  loadDashboard();
+  showScreen('dashboard');
+}
+
+async function openTrack(trackId, role) {
+  if (role === 'admin') {
+    await openAdminTrack(trackId);
+  } else {
+    await openParticipantTrack(trackId);
+  }
+}
+
+// ── Create Track Modal ──
+function openCreateTrackModal() {
+  document.getElementById('create-track-form').style.display = 'block';
+  document.getElementById('create-track-result').style.display = 'none';
+  document.getElementById('ct-track-name').value = '';
+  document.getElementById('create-track-error').style.display = 'none';
+  document.getElementById('create-track-overlay').classList.add('open');
+}
+function closeCreateTrackModal() {
+  document.getElementById('create-track-overlay').classList.remove('open');
+  loadDashboard();
+}
+async function submitCreateTrack() {
+  busy('btn-do-create-track','Creating…');
+  try {
+    var name = document.getElementById('ct-track-name').value.trim();
+    if (!name) { showErr('create-track-error','Please enter a track name.'); return; }
+    var data = await apiRequest('createTrack', { trackName: name });
+    myTracks = (data.tracks||[]).map(normalizeTrackSummary);
+    var created = myTracks.find(function(t){ return t.name === name && t.role === 'admin'; });
+    lastCreatedAccessCode = created ? created.accessCode : '';
+    document.getElementById('ct-result-code').textContent = lastCreatedAccessCode;
+    document.getElementById('create-track-form').style.display = 'none';
+    document.getElementById('create-track-result').style.display = 'block';
+  } catch(e) { showErr('create-track-error', e.message); }
+  finally { restore('btn-do-create-track'); }
+}
+function copyAccessCode() {
+  navigator.clipboard.writeText(lastCreatedAccessCode).then(function(){ alert('Access code copied: ' + lastCreatedAccessCode); });
+}
+
+// ── Manage Track Modal (Track Manager) ──
+function openManageTrackModal() {
+  if (!activeTrack) return;
+  document.getElementById('mt-track-name').textContent = activeTrack.name;
+  document.getElementById('mt-access-code').textContent = activeTrack.accessCode;
+  document.getElementById('mt-new-admin-email').value = '';
+  document.getElementById('manage-track-error').style.display = 'none';
+  document.getElementById('manage-track-success').style.display = 'none';
+  renderManageTrackAdmins();
+  document.getElementById('manage-track-overlay').classList.add('open');
+}
+function closeManageTrackModal() {
+  document.getElementById('manage-track-overlay').classList.remove('open');
+}
+function renderManageTrackAdmins() {
+  var wrap = document.getElementById('mt-admin-list');
+  wrap.innerHTML = '';
+  adminAdmins.forEach(function(a) {
+    var row = document.createElement('div');
+    row.className = 'admin-list-row';
+    row.innerHTML =
+      '<div class="avatar">' + initialsOf(a.name) + '</div>' +
+      '<div><div class="admin-list-row-name">' + escapeHtml(a.name) + '</div>' +
+      '<div class="admin-list-row-email">' + escapeHtml(a.email) + '</div></div>';
+    wrap.appendChild(row);
+  });
+}
+async function submitAddTrackAdmin() {
+  busy('btn-add-admin','Adding…');
+  try {
+    var email = document.getElementById('mt-new-admin-email').value.trim().toLowerCase();
+    if (!email || !email.includes('@')) { showErr('manage-track-error','Enter a valid email address.'); return; }
+    var data = await apiRequest('addTrackAdmin', { trackId: activeTrack.id, adminEmail: email });
+    adminAdmins = data.admins || [];
+    document.getElementById('mt-new-admin-email').value = '';
+    var ok = document.getElementById('manage-track-success');
+    ok.textContent = email + ' is now an admin of this track.'; ok.style.display = 'block';
+    setTimeout(function(){ ok.style.display = 'none'; }, 4000);
+    renderManageTrackAdmins();
+  } catch(e) { showErr('manage-track-error', e.message); }
+  finally { restore('btn-add-admin'); }
+}
+function copyManageAccessCode() {
+  navigator.clipboard.writeText(activeTrack.accessCode).then(function(){ alert('Access code copied: ' + activeTrack.accessCode); });
+}
+async function confirmDeleteTrack() {
+  if (!activeTrack) return;
+  var msg = 'Delete "' + activeTrack.name + '"?\n\nThis permanently removes all of its sessions, enrollments, stamps and redemptions. This cannot be undone.';
+  if (!confirm(msg)) return;
+  try {
+    await apiRequest('deleteTrack', { trackId: activeTrack.id });
+    closeManageTrackModal();
+    goToDashboard();
+  } catch(e) { showErr('manage-track-error', e.message); }
+}
+
+// ══ PARTICIPANT TRACK VIEW ══
+
+async function openParticipantTrack(trackId) {
+  try {
+    var data = await apiRequest('getTrackForParticipant', { trackId: trackId });
+    activeTrack    = normalizeTrackSummary(Object.assign({}, data.track, { role: 'participant' }));
+    activeProfile  = data.profile;
+    activeSessions = (data.sessions||[]).map(normalizeSession);
+    renderParticipant();
+    showScreen('participant');
+  } catch(e) { alert('Could not open track: ' + e.message); }
+}
+
+function renderParticipant() {
+  var u = currentUser, t = activeTrack, p = activeProfile;
+  document.getElementById('p-track-name').textContent = t.name;
+  document.getElementById('p-welcome').textContent  = 'Hello, ' + u.name.split(' ')[0] + ' 👋';
+  document.getElementById('p-facility').textContent = u.facility + ' · ' + u.email;
+  renderMilestoneCards();
+  renderStampGrid();
+  renderRewardQRCards();
+  renderMilestoneMessages();
+  renderSessions();
+  var totalStamps = Number(p.template.totalStamps || 0) || (p.milestones.length ? p.milestones[p.milestones.length-1].position : 10);
+  document.getElementById('btn-open-scanner').disabled = p.stamps >= totalStamps;
+  document.getElementById('btn-open-checkin').disabled = p.stamps >= totalStamps;
+}
+
+function renderMilestoneCards() {
+  var row = document.getElementById('p-milestone-row');
+  row.innerHTML = '';
+  activeProfile.milestones.forEach(function(m) {
+    var card = document.createElement('div');
+    card.className = 'ms-card' + (m.redeemed ? ' redeemed' : (m.eligible ? ' unlocked' : ''));
+    var sub = m.redeemed ? 'Redeemed ✓' : (m.eligible ? 'Unlocked!' : ('Unlock at ' + m.position + ' stamps'));
+    card.innerHTML =
+      '<div class="ms-gfx"><i class="ti ' + (m.icon||'ti-gift') + '"></i></div>' +
+      '<div class="ms-info"><h4>' + escapeHtml(m.name) + '</h4><p>' + sub + '</p></div>';
+    row.appendChild(card);
+  });
+}
+
+function renderStampGrid() {
+  var p = activeProfile;
+  var milestonePositions = {};
+  p.milestones.forEach(function(m){ milestonePositions[m.position] = true; });
+  var total = Number(p.template.totalStamps || 0) || (p.milestones.length ? p.milestones[p.milestones.length-1].position : 10);
+
+  var grid = document.getElementById('p-stamps');
+  grid.innerHTML = '';
+  for (var i = 1; i <= total; i++) {
+    var filled = i <= p.stamps;
+    var div    = document.createElement('div');
+    var mc     = milestonePositions[i] ? ' milestone' : '';
+    div.className = 'stamp ' + (filled ? 'col' : 'unc') + mc;
+    div.innerHTML = '<span class="snum">' + i + '</span>' +
+      (filled ? '<svg class="stamp-cat-svg" viewBox="0 0 100 100" aria-hidden="true"><path d="M14 18 Q14 13 19 12 L39 19 Q45 21 50 21 Q55 21 61 19 L81 12 Q86 13 86 18 L83 48 Q87 56 85 63 L83 68 L92 68 Q94 68 94 70 L94 71 Q94 73 92 73 L82 73 L80 76 L92 80 Q94 81 93 83 L92 85 Q91 87 88 86 L77 82 Q67 96 50 96 Q33 96 23 82 L12 86 Q9 87 8 85 L7 83 Q6 81 8 80 L20 76 L18 73 L8 73 Q6 73 6 71 L6 70 Q6 68 8 68 L17 68 L15 63 Q13 56 17 48 Z" fill="currentColor"/></svg>' : '');
+    grid.appendChild(div);
+  }
+  document.getElementById('p-count').textContent = p.stamps;
+  document.getElementById('p-total').textContent = total;
+  document.getElementById('p-fill').style.width  = Math.min(100, (p.stamps/total)*100) + '%';
+
+  var lblRow = document.getElementById('p-track-lbl');
+  lblRow.innerHTML = '<span class="tl">Start</span>' +
+    p.milestones.map(function(m){ return '<span class="tl">' + m.position + ' pts</span>'; }).join('');
+
+  var dotsRow = document.getElementById('p-dots');
+  var dotsHtml = '<div class="dot r"></div>';
+  p.milestones.forEach(function(m) {
+    dotsHtml += '<div class="dot' + (p.stamps >= m.position ? ' rg' : '') + '"></div>';
+  });
+  dotsRow.innerHTML = dotsHtml;
+}
+
+function renderRewardQRCards() {
+  var wrap = document.getElementById('p-reward-cards');
+  wrap.innerHTML = '';
+  activeProfile.milestones.forEach(function(m, idx) {
+    var cardId = 'qr-reward-' + idx, svgId = 'qr-reward-svg-' + idx;
+    var card = document.createElement('div');
+    var cls = m.redeemed ? 'redeemed-qr' : (m.eligible ? 'active-qr' : 'locked');
+    card.className = 'qr-card ' + cls;
+    card.id = cardId;
+    var subHtml = m.redeemed
+      ? '<span class="redeemed-tag"><i class="ti ti-check" style="font-size:10px;"></i> Redeemed</span>'
+      : (m.eligible ? 'Show to facilitator' : (m.position + ' stamps needed'));
+    card.innerHTML =
+      '<div class="qr-box"><svg width="60" height="60" viewBox="0 0 60 60" id="' + svgId + '"></svg></div>' +
+      '<div class="qr-lbl">' + escapeHtml(m.name) + '</div>' +
+      '<div class="qr-sub">' + subHtml + '</div>';
+    wrap.appendChild(card);
+    if (m.eligible && !m.redeemed) drawSVGQR(svgId, m.position * 7 + idx * 3 + 1);
+  });
+}
+function drawSVGQR(svgId, seed) {
+  var svg = document.getElementById(svgId); if (!svg) return;
+  svg.innerHTML = '';
+  var G=7, CS=8, PAD=2, pat=[];
+  for (var r=0;r<G;r++){pat.push([]);for(var c=0;c<G;c++)pat[r].push(((seed*31+r*17+c*7+r*c*seed)%3)===0?1:0);}
+  [[0,0],[4,0],[0,4]].forEach(function(p){for(var rr=0;rr<3;rr++)for(var cc=0;cc<3;cc++)pat[p[0]+rr][p[1]+cc]=(rr===1&&cc===1)?0:1;});
+  for(var r2=0;r2<G;r2++)for(var c2=0;c2<G;c2++){
+    if(!pat[r2][c2])continue;
+    var rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x',String(PAD+c2*CS));rect.setAttribute('y',String(PAD+r2*CS));
+    rect.setAttribute('width',String(CS-1));rect.setAttribute('height',String(CS-1));
+    rect.setAttribute('fill','white');svg.appendChild(rect);
+  }
+}
+function renderMilestoneMessages() {
+  var wrap = document.getElementById('p-milestone-msgs');
+  wrap.innerHTML = '';
+  activeProfile.milestones.forEach(function(m) {
+    if (m.eligible && !m.redeemed) {
+      var div = document.createElement('div');
+      div.className = 'smsg s-on';
+      div.innerHTML = '<i class="ti ti-gift"></i><span>' + escapeHtml(m.name) + ' unlocked! Show your QR to the facilitator.</span>';
+      wrap.appendChild(div);
+    }
+  });
+}
+function renderSessions() {
+  var p = activeProfile, grid = document.getElementById('p-sessions');
+  grid.innerHTML = '';
+  activeSessions.forEach(function(s) {
+    var claimed = p.claimedSessions.indexOf(s.id) !== -1;
+    var status  = claimed ? 'col' : (s.qrActive || s.codeActive ? 'avl' : 'upc');
+    var lbl     = claimed ? 'Collected' : ((s.qrActive || s.codeActive) ? 'Check-In Open' : 'Upcoming');
+    var icon    = claimed ? 'ti-check'  : ((s.qrActive || s.codeActive) ? 'ti-qrcode-scan' : 'ti-clock');
+    var rawTs   = p.scanTimestamps && p.scanTimestamps[s.id] ? p.scanTimestamps[s.id] : '';
+    var dateOnly = rawTs ? formatDateOnly(rawTs) : '';
+    var tsHtml  = dateOnly ? '<div class="scan-ts"><i class="ti ti-calendar"></i>Stamped: ' + dateOnly + '</div>' : '';
+    var metaBits = [s.type];
+    if (s.location) metaBits.push(s.location);
+    if (s.time) metaBits.push(s.time);
+    var card = document.createElement('div');
+    card.className = 'sess-card';
+    card.innerHTML =
+      '<div class="sess-ic ' + status + '"><i class="ti ' + s.icon + '" style="font-size:17px;"></i></div>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div class="stop"><span class="sname">' + escapeHtml(s.name) + '</span><span class="pb">1 pt</span></div>' +
+        '<div class="stype">' + escapeHtml(metaBits.join(' · ')) + '</div>' +
+        '<div class="sdesc">' + escapeHtml(s.desc) + '</div>' +
+        '<span class="spill ' + status + '"><i class="ti ' + icon + '" style="font-size:10px;"></i> ' + lbl + '</span>' +
+        tsHtml +
+      '</div>';
+    grid.appendChild(card);
+  });
+}
+
+// ── QR Scanner ──
+function openScanner() {
+  document.getElementById('scanner-overlay').classList.add('open');
+  document.getElementById('scan-result-card').style.display  = 'none';
+  document.getElementById('scanner-live-area').style.display = 'block';
+  document.getElementById('scanner-status').textContent      = 'Initialising camera…';
+  document.getElementById('scanner-status').className        = 'scanner-status';
+  scanDone = false; startCamera();
+}
+function closeScanner() { document.getElementById('scanner-overlay').classList.remove('open'); stopCamera(); }
+function startCamera() {
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(function(stream) {
+      scanStream = stream;
+      var video = document.getElementById('scanner-video');
+      video.srcObject = stream; video.play();
+      document.getElementById('scanner-status').textContent = 'Align QR code inside the frame';
+      requestAnimationFrame(scanFrame);
+    })
+    .catch(function(err) {
+      document.getElementById('scanner-status').textContent = 'Camera error: ' + err.message;
+      document.getElementById('scanner-status').className   = 'scanner-status error';
+    });
+}
+function stopCamera() {
+  if (scanAnimFrame) { cancelAnimationFrame(scanAnimFrame); scanAnimFrame = null; }
+  if (scanStream)    { scanStream.getTracks().forEach(function(t){ t.stop(); }); scanStream = null; }
+  var video = document.getElementById('scanner-video'); if (video) video.srcObject = null;
+}
+function scanFrame() {
+  if (scanDone) return;
+  var video = document.getElementById('scanner-video'), canvas = document.getElementById('scanner-canvas');
+  if (!video || !canvas) return;
+  if (video.readyState !== video.HAVE_ENOUGH_DATA) { scanAnimFrame = requestAnimationFrame(scanFrame); return; }
+  canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+  var ctx = canvas.getContext('2d'); ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+  if (code && code.data) { scanDone = true; stopCamera(); submitQRToken(code.data); }
+  else { scanAnimFrame = requestAnimationFrame(scanFrame); }
+}
+async function submitQRToken(token) {
+  document.getElementById('scanner-status').textContent = 'Verifying…';
+  try {
+    var data = await apiRequest('scanQR', { qrToken: token });
+    activeProfile  = data.profile;
+    activeSessions = (data.sessions||[]).map(normalizeSession);
+    syncTrackCardOnDashboard();
+    document.getElementById('scanner-live-area').style.display = 'none';
+    var rc = document.getElementById('scan-result-card');
+    rc.className = 'scan-result-card'; rc.style.display = 'block';
+    document.getElementById('scan-result-icon').textContent  = '✅';
+    document.getElementById('scan-result-title').textContent = 'Stamp collected!';
+    document.getElementById('scan-result-body').textContent  = data.sessionName + '\nStamped on: ' + formatDateOnly(data.scannedAt || '');
+    renderParticipant();
+    setTimeout(function(){ closeScanner(); }, 3000);
+  } catch(e) {
+    document.getElementById('scanner-live-area').style.display = 'none';
+    var rc = document.getElementById('scan-result-card');
+    rc.className = 'scan-result-card error-card'; rc.style.display = 'block';
+    document.getElementById('scan-result-icon').textContent  = '❌';
+    document.getElementById('scan-result-title').textContent = 'Could not claim stamp';
+    document.getElementById('scan-result-body').textContent  = e.message;
+    setTimeout(function(){
+      rc.style.display = 'none';
+      document.getElementById('scanner-live-area').style.display = 'block';
+      scanDone = false; startCamera();
+    }, 3000);
+  }
+}
+
+// ── Check-In Code modal ──
+function openCheckInModal() {
+  document.getElementById('checkin-overlay').classList.add('open');
+  document.getElementById('checkin-result-card').style.display = 'none';
+  document.getElementById('checkin-live-area').style.display   = 'block';
+  document.getElementById('checkin-error').style.display       = 'none';
+  buildCheckInBoxes();
+}
+function closeCheckInModal() { document.getElementById('checkin-overlay').classList.remove('open'); }
+function buildCheckInBoxes() {
+  var wrap = document.getElementById('checkin-boxes');
+  wrap.innerHTML = '';
+  for (var i = 0; i < 6; i++) {
+    var input = document.createElement('input');
+    input.className = 'checkin-digit'; input.maxLength = 1; input.id = 'cb-' + i;
+    input.addEventListener('input', function(e) {
+      e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+      if (e.target.value && e.target.nextElementSibling) e.target.nextElementSibling.focus();
+    });
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && !e.target.value && e.target.previousElementSibling) {
+        e.target.previousElementSibling.focus();
+      }
+      if (e.key === 'Enter') submitCheckInCode();
+    });
+    wrap.appendChild(input);
+  }
+  setTimeout(function(){ var first = document.getElementById('cb-0'); if (first) first.focus(); }, 50);
+}
+function getCheckInCodeValue() {
+  var v = '';
+  for (var i = 0; i < 6; i++) { var el = document.getElementById('cb-'+i); v += el ? el.value : ''; }
+  return v.toUpperCase();
+}
+async function submitCheckInCode() {
+  var code = getCheckInCodeValue();
+  if (code.length !== 6) { showErr('checkin-error','Enter all 6 characters.'); return; }
+  busy('btn-submit-checkin','Checking in…');
+  try {
+    var data = await apiRequest('redeemCheckInCode', { trackId: activeTrack.id, code: code });
+    activeProfile  = data.profile;
+    activeSessions = (data.sessions||[]).map(normalizeSession);
+    syncTrackCardOnDashboard();
+    document.getElementById('checkin-live-area').style.display = 'none';
+    var rc = document.getElementById('checkin-result-card');
+    rc.className = 'scan-result-card'; rc.style.display = 'block';
+    document.getElementById('checkin-result-icon').textContent  = '✅';
+    document.getElementById('checkin-result-title').textContent = 'Stamp collected!';
+    document.getElementById('checkin-result-body').textContent  = data.sessionName + '\nStamped on: ' + formatDateOnly(data.scannedAt || '');
+    renderParticipant();
+    setTimeout(function(){ closeCheckInModal(); }, 2500);
+  } catch(e) {
+    showErr('checkin-error', e.message);
+  } finally { restore('btn-submit-checkin'); }
+}
+
+function syncTrackCardOnDashboard() {
+  var idx = myTracks.findIndex(function(t){ return t.id === activeTrack.id; });
+  if (idx !== -1) { myTracks[idx].stamps = activeProfile.stamps; }
+}
+
+// ══ ADMIN ══
+
+async function openAdminTrack(trackId) {
+  try {
+    var data = await apiRequest('getAdminParticipants', { trackId: trackId });
+    activeTrack        = normalizeTrackSummary(Object.assign({}, data.track, { role: 'admin' }));
+    adminParticipants   = data.participants || [];
+    adminAdmins         = data.admins || [];
+    activeSessions      = (data.sessions||[]).map(normalizeSession);
+    document.getElementById('a-track-name').innerHTML = '<i class="ti ti-shield-check" style="font-size:16px;margin-right:5px;"></i>' + escapeHtml(activeTrack.name);
+    document.getElementById('a-logged-as').textContent = currentUser.name + ' · ' + currentUser.email;
+    setAdminTab('sessions');
+    renderAdmin();
+    showScreen('admin');
+    maybeAddManageButton();
+  } catch(e) { alert('Could not open track: ' + e.message); }
+}
+
+function maybeAddManageButton() {
+  // Show "Manage Track" gear only for global Track Managers viewing a track they admin.
+  var topLeft = document.querySelector('#screen-admin .a-header-top .p-header-brand > div');
+  if (!topLeft) return;
+  var existing = document.getElementById('btn-manage-track');
+  if (existing) existing.remove();
+  if (currentUser.isTrackManager) {
+    var btn = document.createElement('button');
+    btn.id = 'btn-manage-track';
+    btn.className = 'btn-ghost';
+    btn.style.marginTop = '6px';
+    btn.innerHTML = '<i class="ti ti-settings" style="font-size:12px;"></i> Manage Track';
+    btn.onclick = openManageTrackModal;
+    topLeft.appendChild(btn);
+  }
+}
+
+function setAdminTab(tab) {
+  ['sessions','participants','rewards'].forEach(function(t) {
+    document.getElementById('atab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('apane-'+t).classList.toggle('active', t===tab);
+  });
+  if (tab === 'rewards') renderRewardTemplateEditor();
+}
+
+function renderAdmin() { renderQRManagement(); renderAdminParticipants(); }
+
+async function refreshAdminData() {
+  try {
+    var data = await apiRequest('getAdminParticipants', { trackId: activeTrack.id });
+    adminParticipants = data.participants || [];
+    adminAdmins        = data.admins || [];
+    activeSessions      = (data.sessions||[]).map(normalizeSession);
+    renderAdmin();
+  } catch(e) { console.error('refreshAdminData:', e); }
+}
+
+// ── New session form toggle ──
+function toggleNewSessionForm(open) {
+  document.getElementById('new-session-form').classList.toggle('open', open);
+  document.getElementById('btn-show-new-form').style.display = open ? 'none' : 'flex';
+  if (!open) {
+    ['new-sess-name','new-sess-desc','new-sess-loc','new-sess-time'].forEach(function(id){ document.getElementById(id).value=''; });
+  }
+}
+
+async function createSession() {
+  busy('btn-create-session','Creating…');
+  try {
+    var name = document.getElementById('new-sess-name').value.trim();
+    var type = document.getElementById('new-sess-type').value;
+    var icon = document.getElementById('new-sess-icon').value;
+    var desc = document.getElementById('new-sess-desc').value.trim();
+    var loc  = document.getElementById('new-sess-loc').value.trim();
+    var time = document.getElementById('new-sess-time').value.trim();
+    if (!name) { alert('Please enter a session name.'); return; }
+    var data = await apiRequest('createSession', {
+      trackId: activeTrack.id, sessionName: name, sessionType: type,
+      icon: icon, description: desc, location: loc, time: time
+    });
+    adminParticipants = data.participants || [];
+    adminAdmins        = data.admins || [];
+    activeSessions      = (data.sessions||[]).map(normalizeSession);
+    toggleNewSessionForm(false);
+    renderAdmin();
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { restore('btn-create-session'); }
+}
+
+// ── Inline edit for session ──
+function toggleEditForm(sessionId) {
+  var form = document.getElementById('edit-form-'+sessionId);
+  if (!form) return;
+  var isOpen = form.classList.contains('open');
+  document.querySelectorAll('.sess-edit-form.open').forEach(function(f){f.classList.remove('open');});
+  if (!isOpen) form.classList.add('open');
+}
+
+async function saveSession(sessionId) {
+  var btnId = 'btn-save-'+sessionId;
+  busy(btnId,'Saving…');
+  try {
+    var name = document.getElementById('ef-name-'+sessionId).value.trim();
+    var type = document.getElementById('ef-type-'+sessionId).value;
+    var icon = document.getElementById('ef-icon-'+sessionId).value;
+    var desc = document.getElementById('ef-desc-'+sessionId).value.trim();
+    var loc  = document.getElementById('ef-loc-'+sessionId).value.trim();
+    var time = document.getElementById('ef-time-'+sessionId).value.trim();
+    if (!name) { alert('Session name is required.'); return; }
+    var data = await apiRequest('updateSession', {
+      trackId: activeTrack.id, sessionId: sessionId,
+      sessionName: name, sessionType: type, icon: icon, description: desc, location: loc, time: time
+    });
+    adminParticipants = data.participants || [];
+    adminAdmins        = data.admins || [];
+    activeSessions      = (data.sessions||[]).map(normalizeSession);
+    renderAdmin();
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { restore(btnId); }
+}
+
+async function deleteSession(sessionId, sessionName) {
+  if (!confirm('Delete "' + sessionName + '"?\n\nThis will hide the session. Existing stamps are preserved.')) return;
+  try {
+    var data = await apiRequest('deleteSession', { trackId: activeTrack.id, sessionId: sessionId });
+    adminParticipants = data.participants || [];
+    adminAdmins        = data.admins || [];
+    activeSessions      = (data.sessions||[]).map(normalizeSession);
+    renderAdmin();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function buildIconOptions(selected) {
+  var icons = [
+    ['ti-brain','Brain'],['ti-tools','Tools'],['ti-users','Users'],
+    ['ti-layout-dashboard','Dashboard'],['ti-shield-check','Shield'],
+    ['ti-rocket','Rocket'],['ti-sparkles','Sparkles'],['ti-pencil','Pencil'],
+    ['ti-chart-bar','Chart'],['ti-confetti','Confetti'],
+    ['ti-bulb','Bulb'],['ti-star','Star'],['ti-award','Award']
+  ];
+  return icons.map(function(ic){
+    return '<option value="'+ic[0]+'"'+(ic[0]===selected?' selected':'')+'>'+ic[1]+'</option>';
+  }).join('');
+}
+
+function renderQRManagement() {
+  var list = document.getElementById('qr-mgmt-list');
+  list.innerHTML = '';
+  Object.keys(countdownTimers).forEach(function(k){ clearInterval(countdownTimers[k]); });
+  countdownTimers = {};
+
+  activeSessions.forEach(function(s) {
+    var card = document.createElement('div');
+    card.className = 'qr-mgmt-card';
+    card.id = 'qr-card-' + s.id;
+
+    var qrIsActive   = s.qrActive && s.qrExpiresAt > Date.now();
+    var codeIsActive = s.codeActive && s.codeExpiresAt > Date.now();
+    var claimCount = adminParticipants.filter(function(u){ return u.claimedSessions.indexOf(s.id)!==-1; }).length;
+
+    // Default the visible sub-tab to whichever method is currently active, else QR.
+    var defaultMode = codeIsActive && !qrIsActive ? 'code' : 'qr';
+
+    var typeOpts = ['Sharing','Workshop','Keynote','Panel'].map(function(t){
+      return '<option value="'+t+'"'+(t===s.type?' selected':'')+'>'+t+'</option>';
+    }).join('');
+
+    var editForm =
+      '<div class="sess-edit-form" id="edit-form-'+s.id+'">' +
+        '<div style="display:flex;flex-direction:column;gap:8px;">' +
+          '<div><label class="form-label" style="font-size:10px;">Session Name</label>' +
+          '<input class="edit-form-input" id="ef-name-'+s.id+'" value="'+escapeHtml(s.name)+'" placeholder="Session name"></div>' +
+          '<div class="edit-form-row">' +
+            '<div><label class="form-label" style="font-size:10px;">Type</label>' +
+            '<select class="edit-form-select" id="ef-type-'+s.id+'">'+typeOpts+'</select></div>' +
+            '<div><label class="form-label" style="font-size:10px;">Icon</label>' +
+            '<select class="edit-form-select" id="ef-icon-'+s.id+'">'+buildIconOptions(s.icon)+'</select></div>' +
+          '</div>' +
+          '<div><label class="form-label" style="font-size:10px;">Description</label>' +
+          '<input class="edit-form-input" id="ef-desc-'+s.id+'" value="'+escapeHtml(s.desc)+'" placeholder="Description"></div>' +
+          '<div class="edit-form-row">' +
+            '<div><label class="form-label" style="font-size:10px;">Location</label>' +
+            '<input class="edit-form-input" id="ef-loc-'+s.id+'" value="'+escapeHtml(s.location)+'" placeholder="Location"></div>' +
+            '<div><label class="form-label" style="font-size:10px;">Time</label>' +
+            '<input class="edit-form-input" id="ef-time-'+s.id+'" value="'+escapeHtml(s.time)+'" placeholder="Time"></div>' +
+          '</div>' +
+          '<div class="edit-form-actions">' +
+            '<button class="btn-save" id="btn-save-'+s.id+'" onclick="saveSession(\''+s.id+'\')"><i class="ti ti-check"></i> Save</button>' +
+            '<button class="btn-cancel-edit" onclick="toggleEditForm(\''+s.id+'\')">Cancel</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    card.innerHTML =
+      '<div class="qr-mgmt-top">' +
+        '<div class="qr-mgmt-top-left">' +
+          '<div class="qr-mgmt-name"><i class="ti '+s.icon+'" style="font-size:12px;margin-right:4px;color:var(--terra);"></i>'+escapeHtml(s.name)+'</div>' +
+          '<div class="qr-mgmt-meta">'+escapeHtml(s.type)+' · <span class="scan-count-badge"><i class="ti ti-users" style="font-size:10px;"></i>'+claimCount+' scanned</span></div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:6px;">' +
+          '<button class="btn-icon" title="Edit session" onclick="toggleEditForm(\''+s.id+'\')"><i class="ti ti-pencil"></i></button>' +
+          '<button class="btn-icon danger" title="Delete session" onclick="deleteSession(\''+s.id+'\',\''+s.name.replace(/'/g,"\\'")+'\')">' +
+            '<i class="ti ti-trash"></i></button>' +
+        '</div>' +
+      '</div>' +
+      editForm +
+      '<div class="tabset">' +
+        '<button class="subtab'+(defaultMode==='qr'?' active':'')+'" id="subtab-qr-'+s.id+'" onclick="setCheckinMode(\''+s.id+'\',\'qr\')"><i class="ti ti-qrcode"></i> QR Code</button>' +
+        '<button class="subtab'+(defaultMode==='code'?' active checkin-active':'')+'" id="subtab-code-'+s.id+'" onclick="setCheckinMode(\''+s.id+'\',\'code\')"><i class="ti ti-keyboard"></i> Check-In Code</button>' +
+      '</div>' +
+      '<div id="mode-qr-'+s.id+'" style="display:'+(defaultMode==='qr'?'block':'none')+';">' + buildQrModeHtml(s, qrIsActive) + '</div>' +
+      '<div id="mode-code-'+s.id+'" style="display:'+(defaultMode==='code'?'block':'none')+';">' + buildCodeModeHtml(s, codeIsActive) + '</div>';
+
+    list.appendChild(card);
+
+    if (qrIsActive && s.qrToken) {
+      try {
+        new QRCode(document.getElementById('qr-img-'+s.id), {
+          text: s.qrToken, width: 148, height: 148,
+          colorDark: '#2C1F14', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.L
+        });
+      } catch(e) { console.warn('QR render failed', e); }
+    }
+    if (qrIsActive)   startCountdown(s.id, s.qrExpiresAt, 'cd-qr-');
+    if (codeIsActive) startCountdown(s.id, s.codeExpiresAt, 'cd-code-');
+  });
+}
+
+function buildQrModeHtml(s, isActive) {
+  var statusPill = isActive
+    ? '<span class="qr-status-pill active"><i class="ti ti-check" style="font-size:10px;"></i> Active</span>'
+    : '<span class="qr-status-pill inactive">Inactive</span>';
+  var qrHtml = '';
+  if (isActive && s.qrToken) {
+    qrHtml = '<div class="qr-display-wrap">' +
+               '<div class="qr-display-box" id="qr-img-'+s.id+'"></div>' +
+               '<button class="btn-download-qr" onclick="downloadSessionQR(\''+s.id+'\')"><i class="ti ti-download"></i> Download PNG</button>' +
+             '</div>';
+  } else {
+    qrHtml = '<div class="qr-display-wrap"><div class="qr-display-box" style="color:var(--ts);font-size:11px;text-align:center;padding:8px;">No QR active</div></div>';
+  }
+  var countdownHtml = isActive ? '<div class="countdown" id="cd-qr-'+s.id+'"><i class="ti ti-clock"></i> <span></span></div>' : '';
+  return '<div style="margin-top:10px;display:flex;justify-content:flex-end;margin-bottom:8px;">'+statusPill+'</div>' +
+    '<div class="qr-mgmt-body">' +
+      qrHtml +
+      '<div class="qr-controls">' +
+        '<div class="duration-row">' +
+          '<select class="duration-select" id="dur-qr-'+s.id+'">' +
+            '<option value="5">5 minutes</option><option value="10">10 minutes</option>' +
+            '<option value="15" selected>15 minutes</option><option value="30">30 minutes</option>' +
+            '<option value="60">1 hour</option><option value="120">2 hours</option>' +
+          '</select>' +
+          '<button class="btn-activate" id="btn-act-qr-'+s.id+'" onclick="activateQR(\''+s.id+'\')"><i class="ti ti-qrcode"></i> '+(isActive?'Refresh':'Activate')+'</button>' +
+        '</div>' +
+        (isActive ? '<button class="btn-deactivate" onclick="deactivateQRCode(\''+s.id+'\')"><i class="ti ti-x"></i> Deactivate</button>' : '') +
+        countdownHtml +
+        '<button class="btn-download-history" onclick="downloadSessionScanHistory(\''+s.id+'\')"><i class="ti ti-table-export"></i> Download scan history</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function buildCodeModeHtml(s, isActive) {
+  var statusPill = isActive
+    ? '<span class="checkin-status-pill active"><i class="ti ti-check" style="font-size:10px;"></i> Active</span>'
+    : '<span class="checkin-status-pill inactive">Inactive</span>';
+  var codeHtml = '';
+  if (isActive && s.codeValue) {
+    codeHtml = '<div class="qr-display-wrap">' +
+                 '<div class="code-display-box"><div class="code-text">'+escapeHtml(s.codeValue)+'</div><div class="code-text-label">Check-in code</div></div>' +
+               '</div>';
+  } else {
+    codeHtml = '<div class="qr-display-wrap"><div class="code-display-box" style="color:var(--ts);background:var(--cream-d);border-color:var(--cream-d);font-size:11px;text-align:center;padding:8px;">No code active</div></div>';
+  }
+  var countdownHtml = isActive ? '<div class="countdown" id="cd-code-'+s.id+'"><i class="ti ti-clock"></i> <span></span></div>' : '';
+  return '<div style="margin-top:10px;display:flex;justify-content:flex-end;margin-bottom:8px;">'+statusPill+'</div>' +
+    '<div class="qr-mgmt-body">' +
+      codeHtml +
+      '<div class="qr-controls">' +
+        '<div class="duration-row">' +
+          '<select class="duration-select" id="dur-code-'+s.id+'">' +
+            '<option value="5">5 minutes</option><option value="10">10 minutes</option>' +
+            '<option value="15" selected>15 minutes</option><option value="30">30 minutes</option>' +
+            '<option value="60">1 hour</option><option value="120">2 hours</option>' +
+          '</select>' +
+          '<button class="btn-activate checkin-btn" id="btn-act-code-'+s.id+'" onclick="activateCheckInCode(\''+s.id+'\')"><i class="ti ti-keyboard"></i> '+(isActive?'Refresh':'Activate')+'</button>' +
+        '</div>' +
+        (isActive ? '<button class="btn-deactivate" onclick="deactivateCheckInCodeAdmin(\''+s.id+'\')"><i class="ti ti-x"></i> Deactivate</button>' : '') +
+        countdownHtml +
+        '<button class="btn-download-history" onclick="downloadSessionScanHistory(\''+s.id+'\')"><i class="ti ti-table-export"></i> Download scan history</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function setCheckinMode(sessionId, mode) {
+  document.getElementById('mode-qr-'+sessionId).style.display   = mode==='qr'   ? 'block' : 'none';
+  document.getElementById('mode-code-'+sessionId).style.display = mode==='code' ? 'block' : 'none';
+  document.getElementById('subtab-qr-'+sessionId).classList.toggle('active', mode==='qr');
+  document.getElementById('subtab-code-'+sessionId).classList.remove('active','checkin-active');
+  if (mode==='code') document.getElementById('subtab-code-'+sessionId).classList.add('active','checkin-active');
+}
+
+function startCountdown(sessionId, expiresAtMs, prefix) {
+  var key = prefix + sessionId;
+  function tick() {
+    var el = document.getElementById(prefix+sessionId);
+    if (!el) { clearInterval(countdownTimers[key]); return; }
+    var rem = Math.max(0, Math.floor((expiresAtMs - Date.now())/1000));
+    var m = Math.floor(rem/60), sec = rem%60;
+    el.querySelector('span').textContent = 'Expires in '+m+':'+(sec<10?'0':'')+sec;
+    el.className = 'countdown'+(rem<60?' expired':'');
+    if (rem === 0) { clearInterval(countdownTimers[key]); setTimeout(refreshAdminData, 1000); }
+  }
+  tick(); countdownTimers[key] = setInterval(tick, 1000);
+}
+
+async function activateQR(sessionId) {
+  var btnId = 'btn-act-qr-'+sessionId;
+  var dur = Number(document.getElementById('dur-qr-'+sessionId).value || 15);
+  busy(btnId, 'Generating…');
+  try {
+    var data = await apiRequest('generateQRToken', { trackId: activeTrack.id, sessionId: sessionId, durationMinutes: dur });
+    var idx = activeSessions.findIndex(function(s){ return s.id===sessionId; });
+    if (idx !== -1) {
+      activeSessions[idx].qrActive = true;
+      activeSessions[idx].qrExpiresAt = data.expiresAtMs;
+      activeSessions[idx].qrToken = data.token;
+    }
+    renderQRManagement();
+  } catch(e) { alert('Error: '+e.message); }
+  finally { restore(btnId); }
+}
+async function deactivateQRCode(sessionId) {
+  try {
+    await apiRequest('deactivateQR', { trackId: activeTrack.id, sessionId: sessionId });
+    var idx = activeSessions.findIndex(function(s){ return s.id===sessionId; });
+    if (idx !== -1) { activeSessions[idx].qrActive = false; activeSessions[idx].qrToken=''; activeSessions[idx].qrExpiresAt=0; }
+    renderQRManagement();
+  } catch(e) { alert('Error: '+e.message); }
+}
+async function activateCheckInCode(sessionId) {
+  var btnId = 'btn-act-code-'+sessionId;
+  var dur = Number(document.getElementById('dur-code-'+sessionId).value || 15);
+  busy(btnId, 'Generating…');
+  try {
+    var data = await apiRequest('generateCheckInCode', { trackId: activeTrack.id, sessionId: sessionId, durationMinutes: dur });
+    var idx = activeSessions.findIndex(function(s){ return s.id===sessionId; });
+    if (idx !== -1) {
+      activeSessions[idx].codeActive = true;
+      activeSessions[idx].codeExpiresAt = data.expiresAtMs;
+      activeSessions[idx].codeValue = data.code;
+    }
+    renderQRManagement();
+    setCheckinMode(sessionId, 'code');
+  } catch(e) { alert('Error: '+e.message); }
+  finally { restore(btnId); }
+}
+async function deactivateCheckInCodeAdmin(sessionId) {
+  try {
+    await apiRequest('deactivateCheckInCode', { trackId: activeTrack.id, sessionId: sessionId });
+    var idx = activeSessions.findIndex(function(s){ return s.id===sessionId; });
+    if (idx !== -1) { activeSessions[idx].codeActive = false; activeSessions[idx].codeValue=''; activeSessions[idx].codeExpiresAt=0; }
+    renderQRManagement();
+    setCheckinMode(sessionId, 'code');
+  } catch(e) { alert('Error: '+e.message); }
+}
+
+function sanitizeFilename(name) {
+  return String(name||'session').trim().replace(/[^a-z0-9-_]+/gi,'-').replace(/^-+|-+$/g,'')||'session';
+}
+function downloadSessionQR(sessionId) {
+  var s = activeSessions.find(function(x){ return x.id===sessionId; });
+  if (!s || !s.qrToken) { alert('No active QR code for this session.'); return; }
+  var temp = document.createElement('div');
+  temp.style.cssText = 'position:fixed;left:-99999px;top:0;';
+  document.body.appendChild(temp);
+  try {
+    new QRCode(temp, { text: s.qrToken, width:1200, height:1200, colorDark:'#2C1F14', colorLight:'#ffffff', correctLevel:QRCode.CorrectLevel.L });
+    setTimeout(function(){
+      try {
+        var canvas = temp.querySelector('canvas'), img = temp.querySelector('img');
+        var href = canvas ? canvas.toDataURL('image/png') : (img ? img.src : '');
+        if (!href) throw new Error('Could not generate PNG.');
+        var link = document.createElement('a');
+        link.href = href; link.download = sanitizeFilename(s.name)+'-qr.png';
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+      } catch(err) { alert('Download failed: '+(err.message||String(err))); }
+      finally { if (temp.parentNode) temp.parentNode.removeChild(temp); }
+    }, 50);
+  } catch(err) { if (temp.parentNode) temp.parentNode.removeChild(temp); alert('Download failed: '+(err.message||String(err))); }
+}
+
+function csvEscape(v) {
+  var s = String(v==null?'':v);
+  return (s.indexOf('"')!==-1||s.indexOf(',')!==-1||s.indexOf('\n')!==-1) ? '"'+s.replace(/"/g,'""')+'"' : s;
+}
+function downloadCsv(filename, rows) {
+  var csv = rows.map(function(row){ return row.map(csvEscape).join(','); }).join('\n');
+  var blob = new Blob(['\uFEFF'+csv], { type:'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement('a');
+  link.href = url; link.download = filename;
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+function downloadSessionScanHistory(sessionId) {
+  var session = activeSessions.find(function(s){ return s.id===sessionId; });
+  if (!session) { alert('Session not found.'); return; }
+  var rows = [['Session ID','Session Name','Participant Name','Facility','Email','Scanned At']];
+  var scanned = adminParticipants.filter(function(u){ return u.scanTimestamps && u.scanTimestamps[sessionId]; })
+    .sort(function(a,b){ return String(a.scanTimestamps[sessionId]||'').localeCompare(String(b.scanTimestamps[sessionId]||'')); });
+  scanned.forEach(function(u){ rows.push([session.id, session.name, u.name, u.facility, u.email, u.scanTimestamps[sessionId]||'']); });
+  if (!scanned.length) rows.push([session.id, session.name,'','','','No scans yet']);
+  downloadCsv(sanitizeFilename(session.name)+'-scan-history.csv', rows);
+}
+function downloadAllSessionScanHistory() {
+  var rows = [['Session ID','Session Name','Participant Name','Facility','Email','Scanned At']];
+  activeSessions.forEach(function(session) {
+    var found = false;
+    adminParticipants.forEach(function(u){
+      if (u.scanTimestamps && u.scanTimestamps[session.id]) {
+        found = true;
+        rows.push([session.id, session.name, u.name, u.facility, u.email, u.scanTimestamps[session.id]||'']);
+      }
+    });
+    if (!found) rows.push([session.id, session.name,'','','','No scans yet']);
+  });
+  downloadCsv('all-session-scan-history.csv', rows);
+}
+
+// ── Participants table ──
+function renderAdminParticipants() {
+  var query = (document.getElementById('a-search').value||'').toLowerCase();
+  var parts = adminParticipants;
+  var eligible = parts.filter(function(p){ return p.milestones.some(function(m){ return m.eligible && !m.redeemed; }); });
+  var redeemedCount = parts.filter(function(p){ return p.milestones.some(function(m){ return m.redeemed; }); }).length;
+
+  document.getElementById('a-total').textContent    = parts.length;
+  document.getElementById('a-redeemed').textContent = redeemedCount;
+
+  var filtered = parts;
+  if (activeFilter==='eligible') filtered = eligible;
+  if (query) filtered = filtered.filter(function(p){ return p.name.toLowerCase().indexOf(query)!==-1||p.email.toLowerCase().indexOf(query)!==-1; });
+
+  var tbl = document.getElementById('a-table');
+  tbl.innerHTML = '';
+  if (!filtered.length) {
+    tbl.innerHTML = '<div class="no-results"><i class="ti ti-search-off"></i>No participants found.</div>'; return;
+  }
+  var totalStamps = activeTrack.template.totalStamps || 10;
+  filtered.forEach(function(p) {
+    var card = document.createElement('div');
+    card.className = 'a-card';
+    var historyRows = '';
+    if (p.claimedSessions.length > 0) {
+      historyRows = '<details class="stamp-history"><summary class="stamp-history-title"><span>Scan history</span><span class="history-count">'+p.claimedSessions.length+' scans</span></summary><div class="stamp-history-rows">';
+      p.claimedSessions.forEach(function(sid) {
+        var sess = activeSessions.find(function(s){ return s.id===sid; });
+        var sname = sess ? sess.name : 'Session '+sid;
+        var ts = (p.scanTimestamps && p.scanTimestamps[sid]) ? p.scanTimestamps[sid] : '—';
+        historyRows += '<div class="shrow"><span class="shrow-name">'+escapeHtml(sname)+'</span><span class="shrow-ts"><i class="ti ti-clock-hour-4"></i>'+escapeHtml(ts)+'</span></div>';
+      });
+      historyRows += '</div></details>';
+    }
+    var rewardRows = p.milestones.map(function(m){ return rewardBlock(p, m); }).join('');
+    card.innerHTML =
+      '<div class="a-card-top"><div class="avatar">'+initialsOf(p.name)+'</div>' +
+      '<div><div class="a-pname">'+escapeHtml(p.name)+'</div><div class="a-pmeta">'+escapeHtml(p.facility)+' · '+escapeHtml(p.email)+'</div></div></div>' +
+      '<div class="a-stamp-bar"><div class="a-stamp-label"><span class="a-stamp-lbl">Stamps collected</span><span class="a-stamp-val">'+p.stamps+' / '+totalStamps+'</span></div>' +
+      '<div class="mini-bar"><div class="mini-fill" style="width:'+Math.min(100,(p.stamps/totalStamps*100))+'%;"></div></div></div>' +
+      historyRows +
+      '<div class="reward-rows">'+rewardRows+'</div>';
+    tbl.appendChild(card);
+  });
+}
+
+function rewardBlock(p, m) {
+  var right = m.redeemed
+    ? '<div style="text-align:right;"><span class="rbadge done"><i class="ti ti-check" style="font-size:10px;"></i> Redeemed</span>'+(m.redeemedAt?'<div class="redeemed-date">'+escapeHtml(m.redeemedAt)+'</div>':'')+'</div>'
+    : (m.eligible ? '<button class="btn-mark" onclick="markRedeemed(\''+p.id+'\',\''+m.position+'\')">Mark redeemed</button>'
+                  : '<span class="rbadge locked">Locked</span>');
+  return '<div class="rrow"><div class="rleft"><div class="ricon"><i class="ti '+(m.icon||'ti-gift')+'"></i></div>' +
+    '<div><div class="rname">'+escapeHtml(m.name)+'</div><div class="rsub">Eligible at '+m.position+' stamps</div></div></div>'+right+'</div>';
+}
+
+async function markRedeemed(participantId, rewardType) {
+  try {
+    var data = await apiRequest('markRedeemed', { trackId: activeTrack.id, participantId: participantId, rewardType: rewardType });
+    adminParticipants = data.participants || [];
+    adminAdmins        = data.admins || [];
+    activeSessions      = (data.sessions||[]).map(normalizeSession);
+    renderAdmin();
+  } catch(e) { alert(e.message); }
+}
+
+function setFilter(btn, filter) {
+  document.querySelectorAll('#a-filter-row .fbtn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active'); activeFilter = filter; renderAdminParticipants();
+}
+
+// ── Reward Template Editor ──
+var templateEditorState = { totalStamps: 10, milestones: [] };
+
+function renderRewardTemplateEditor() {
+  templateEditorState = JSON.parse(JSON.stringify(activeTrack.template));
+  document.getElementById('tpl-total-stamps').value = templateEditorState.totalStamps || 10;
+  renderMilestoneRows();
+}
+function renderMilestoneRows() {
+  var wrap = document.getElementById('tpl-milestones');
+  wrap.innerHTML = '';
+  templateEditorState.milestones.forEach(function(m, idx) {
+    var row = document.createElement('div');
+    row.className = 'milestone-row';
+    row.innerHTML =
+      '<div class="milestone-row-top">' +
+        '<input type="number" min="1" value="'+m.position+'" onchange="updateMilestoneField('+idx+',\'position\',this.value)" placeholder="#">' +
+        '<input type="text" value="'+escapeHtml(m.name)+'" onchange="updateMilestoneField('+idx+',\'name\',this.value)" placeholder="Reward name">' +
+        '<select onchange="updateMilestoneField('+idx+',\'icon\',this.value)">'+buildIconOptions(m.icon)+'</select>' +
+        '<button class="btn-icon danger" onclick="removeMilestoneRow('+idx+')"><i class="ti ti-trash"></i></button>' +
+      '</div>';
+    wrap.appendChild(row);
+  });
+}
+function updateMilestoneField(idx, field, value) {
+  if (field === 'position') value = Math.max(1, Number(value)||1);
+  templateEditorState.milestones[idx][field] = value;
+}
+function addMilestoneRow() {
+  var nextPos = (templateEditorState.milestones.length
+    ? Math.max.apply(null, templateEditorState.milestones.map(function(m){return Number(m.position)||0;})) + 5
+    : 5);
+  templateEditorState.milestones.push({ position: nextPos, name: 'New Reward', icon: 'ti-gift' });
+  renderMilestoneRows();
+}
+function removeMilestoneRow(idx) {
+  templateEditorState.milestones.splice(idx, 1);
+  renderMilestoneRows();
+}
+async function saveRewardTemplate() {
+  busy('btn-save-template','Saving…');
+  try {
+    var totalStamps = Math.max(1, Number(document.getElementById('tpl-total-stamps').value)||10);
+    var payloadTemplate = { totalStamps: totalStamps, milestones: templateEditorState.milestones };
+    var data = await apiRequest('updateRewardTemplate', { trackId: activeTrack.id, template: payloadTemplate });
+    activeTrack.template = data.track.template;
+    var idx = myTracks.findIndex(function(t){ return t.id === activeTrack.id; });
+    if (idx !== -1) myTracks[idx].template = data.track.template;
+    await refreshAdminData();
+    alert('Reward template saved.');
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { restore('btn-save-template'); }
+}
+</script>
+</div>
+</body>
+</html>
