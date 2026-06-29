@@ -277,6 +277,8 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
 .stat-num.green{color:var(--green);}
 .stat-lbl{font-size:11px;color:var(--ts);font-weight:600;margin-top:3px;}
 .qr-mgmt-list{display:grid;gap:10px;}
+.session-picker-row{margin-bottom:14px;}
+.session-picker-row .form-label{margin-bottom:6px;}
 /* ── Collapsible accordion sections (Attendance Summary, Manage Sessions) ── */
 .collapsible-section{background:#fff;border-radius:var(--r-lg);border:.5px solid #E8DDD4;box-shadow:var(--shadow);overflow:hidden;}
 .collapsible-summary{list-style:none;cursor:pointer;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--tm);}
@@ -292,6 +294,22 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
 .attendance-row-meta{font-size:11px;color:var(--ts);}
 .attendance-row-count{font-size:13px;font-weight:700;color:var(--terra);display:flex;align-items:center;gap:5px;flex-shrink:0;background:#fff;border-radius:99px;padding:4px 11px;border:1px solid var(--terra-l);}
 .attendance-empty{text-align:center;padding:18px 10px;color:var(--ts);font-size:12px;}
+/* ── Interactive attendance bar chart ── */
+.attendance-chart-wrap{position:relative;}
+.attendance-chart{width:100%;height:auto;display:block;overflow:visible;}
+.attendance-line-path{fill:none;stroke:var(--terra-l);stroke-width:2.5;transition:stroke .15s;}
+.attendance-area-path{fill:var(--terra-p);opacity:.55;transition:opacity .15s;}
+.attendance-grid-line{stroke:var(--cream-d);stroke-width:1;}
+.attendance-point-group{cursor:pointer;}
+.attendance-point-dot{fill:#fff;stroke:var(--terra-l);stroke-width:2.5;transition:stroke .15s,r .15s;}
+.attendance-point-group:hover .attendance-point-dot,.attendance-point-group.active .attendance-point-dot{stroke:var(--terra);r:6;}
+.attendance-axis-label{font-size:9px;fill:var(--ts);font-family:var(--font);text-anchor:middle;}
+.attendance-value-label{font-size:10px;fill:var(--tm);font-weight:700;font-family:var(--font);text-anchor:middle;}
+.attendance-tooltip{position:absolute;pointer-events:none;background:var(--tm);color:#fff;font-size:11px;font-weight:600;padding:7px 11px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-100%);opacity:0;transition:opacity .12s;z-index:5;box-shadow:var(--shadow-lg);}
+.attendance-tooltip.visible{opacity:1;}
+.attendance-tooltip .tt-name{font-weight:700;}
+.attendance-tooltip .tt-count{color:var(--terra-l);margin-left:5px;}
+.attendance-tooltip::after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--tm);}
 .qr-mgmt-card{background:#fff;border-radius:var(--r-md);border:.5px solid #E8DDD4;padding:14px 16px;box-shadow:var(--shadow);overflow:hidden;}
 .qr-mgmt-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
 .qr-mgmt-top-left{flex:1;min-width:0;}
@@ -724,82 +742,97 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
             <i class="ti ti-chevron-down collapsible-chevron"></i>
           </summary>
           <div class="collapsible-body">
-            <div class="attendance-list" id="attendance-summary-list"></div>
+            <div class="attendance-chart-wrap" id="attendance-chart-wrap">
+              <div class="attendance-tooltip" id="attendance-tooltip"></div>
+            </div>
           </div>
         </details>
       </div>
       <div class="section mt-16">
-        <details class="collapsible-section" id="manage-sessions-details" open>
-          <summary class="collapsible-summary">
-            <span><i class="ti ti-list-details" style="margin-right:6px;color:var(--terra);"></i>Manage Sessions</span>
-            <i class="ti ti-chevron-down collapsible-chevron"></i>
-          </summary>
-          <div class="collapsible-body">
-            <button class="btn-download-history" onclick="downloadAllSessionScanHistory()" style="margin-bottom:10px;">
-              <i class="ti ti-table-export"></i> Download all scan history
-            </button>
-            <button class="btn-add-session" id="btn-show-new-form" onclick="toggleNewSessionForm(true)">
-              <i class="ti ti-plus"></i> Add New Session
-            </button>
-            <div class="new-session-form" id="new-session-form">
-              <h4><i class="ti ti-plus" style="font-size:13px;color:var(--terra);margin-right:4px;"></i>New Session</h4>
-              <div class="form-group" style="margin-bottom:0;">
-                <label class="form-label" style="font-size:11px;">Session Name</label>
-                <input class="new-form-input" id="new-sess-name" type="text" placeholder="e.g. Session 11">
-              </div>
-              <div class="new-form-row">
-                <div>
-                  <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Type</label>
-                  <select class="new-form-select" id="new-sess-type">
-                    <option value="Sharing">Sharing</option>
-                    <option value="Workshop">Workshop</option>
-                    <option value="Keynote">Keynote</option>
-                    <option value="Panel">Panel</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Icon</label>
-                  <select class="new-form-select" id="new-sess-icon">
-                    <option value="ti-brain">Brain</option>
-                    <option value="ti-tools">Tools</option>
-                    <option value="ti-users">Users</option>
-                    <option value="ti-layout-dashboard">Dashboard</option>
-                    <option value="ti-shield-check">Shield</option>
-                    <option value="ti-rocket">Rocket</option>
-                    <option value="ti-sparkles">Sparkles</option>
-                    <option value="ti-pencil">Pencil</option>
-                    <option value="ti-chart-bar">Chart</option>
-                    <option value="ti-confetti">Confetti</option>
-                    <option value="ti-bulb">Bulb</option>
-                    <option value="ti-star">Star</option>
-                    <option value="ti-award">Award</option>
-                  </select>
-                </div>
+        <div class="slabel">Manage Sessions</div>
+        <div class="card">
+          <button class="btn-add-session" id="btn-show-new-form" onclick="toggleNewSessionForm(true)">
+            <i class="ti ti-plus"></i> Add New Session
+          </button>
+          <div class="new-session-form" id="new-session-form">
+            <h4><i class="ti ti-plus" style="font-size:13px;color:var(--terra);margin-right:4px;"></i>New Session</h4>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" style="font-size:11px;">Session Name</label>
+              <input class="new-form-input" id="new-sess-name" type="text" placeholder="e.g. Session 11">
+            </div>
+            <div class="new-form-row">
+              <div>
+                <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Type</label>
+                <select class="new-form-select" id="new-sess-type">
+                  <option value="Sharing">Sharing</option>
+                  <option value="Workshop">Workshop</option>
+                  <option value="Keynote">Keynote</option>
+                  <option value="Panel">Panel</option>
+                </select>
               </div>
               <div>
-                <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Description</label>
-                <input class="new-form-input" id="new-sess-desc" type="text" placeholder="Short description of this session">
-              </div>
-              <div class="new-form-row">
-                <div>
-                  <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Location</label>
-                  <input class="new-form-input" id="new-sess-loc" type="text" placeholder="e.g. Hall A">
-                </div>
-                <div>
-                  <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Time</label>
-                  <input class="new-form-input" id="new-sess-time" type="text" placeholder="e.g. 10:00 AM">
-                </div>
-              </div>
-              <div class="new-form-actions">
-                <button class="btn-create" id="btn-create-session" onclick="createSession()">
-                  <i class="ti ti-check"></i> Create Session
-                </button>
-                <button class="btn-cancel-new" onclick="toggleNewSessionForm(false)">Cancel</button>
+                <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Icon</label>
+                <select class="new-form-select" id="new-sess-icon">
+                  <option value="ti-brain">Brain</option>
+                  <option value="ti-tools">Tools</option>
+                  <option value="ti-users">Users</option>
+                  <option value="ti-layout-dashboard">Dashboard</option>
+                  <option value="ti-shield-check">Shield</option>
+                  <option value="ti-rocket">Rocket</option>
+                  <option value="ti-sparkles">Sparkles</option>
+                  <option value="ti-pencil">Pencil</option>
+                  <option value="ti-chart-bar">Chart</option>
+                  <option value="ti-confetti">Confetti</option>
+                  <option value="ti-bulb">Bulb</option>
+                  <option value="ti-star">Star</option>
+                  <option value="ti-award">Award</option>
+                </select>
               </div>
             </div>
-            <div class="qr-mgmt-list" id="qr-mgmt-list"></div>
+            <div>
+              <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Description</label>
+              <input class="new-form-input" id="new-sess-desc" type="text" placeholder="Short description of this session">
+            </div>
+            <div class="new-form-row">
+              <div>
+                <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Location</label>
+                <input class="new-form-input" id="new-sess-loc" type="text" placeholder="e.g. Hall A">
+              </div>
+              <div>
+                <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Time</label>
+                <input class="new-form-input" id="new-sess-time" type="text" placeholder="e.g. 10:00 AM">
+              </div>
+            </div>
+            <div class="new-form-actions">
+              <button class="btn-create" id="btn-create-session" onclick="createSession()">
+                <i class="ti ti-check"></i> Create Session
+              </button>
+              <button class="btn-cancel-new" onclick="toggleNewSessionForm(false)">Cancel</button>
+            </div>
           </div>
-        </details>
+          <div class="session-picker-row">
+            <label class="form-label">Select a session to manage</label>
+            <select class="form-select" id="manage-session-picker" onchange="onManageSessionPickerChange()"></select>
+          </div>
+          <div class="qr-mgmt-list" id="qr-mgmt-list"></div>
+        </div>
+      </div>
+      <div class="section mt-16">
+        <div class="slabel">Data History</div>
+        <div class="card">
+          <p style="font-size:12px;color:var(--ts);margin-bottom:14px;line-height:1.6;">
+            Export scan history as a CSV. Choose a specific session, or download history across all sessions at once.
+          </p>
+          <div class="form-group">
+            <label class="form-label">Session</label>
+            <select class="form-select" id="history-session-picker">
+              <option value="__all__">All sessions</option>
+            </select>
+          </div>
+          <button class="btn-download-history" id="btn-download-history" onclick="downloadSelectedHistory()">
+            <i class="ti ti-table-export"></i> Download scan history
+          </button>
+        </div>
       </div>
     </div>
 
@@ -940,6 +973,7 @@ var countdownTimers  = {};
 var lastCreatedAccessCode = '';
 var participantSessionPage = 0;
 var SESSIONS_PER_PAGE = 5;
+var selectedManageSessionId = '';
 
 // ── API ──
 function apiRequest(action, payload) {
@@ -1727,28 +1761,123 @@ function setAdminTab(tab) {
   if (tab === 'rewards') renderRewardTemplateEditor();
 }
 
-function renderAdmin() { renderAttendanceSummary(); renderQRManagement(); renderAdminParticipants(); }
+function renderAdmin() { renderAttendanceSummary(); renderQRManagement(); renderHistoryPicker(); renderAdminParticipants(); }
+
+function renderHistoryPicker() {
+  var picker = document.getElementById('history-session-picker');
+  if (!picker) return;
+  var prevValue = picker.value || '__all__';
+  var options = ['<option value="__all__">All sessions</option>'];
+  activeSessions.forEach(function(s) {
+    options.push('<option value="' + s.id + '">' + escapeHtml(s.name) + '</option>');
+  });
+  picker.innerHTML = options.join('');
+  // Keep the previous selection if that session still exists, else fall back to "All sessions".
+  var stillExists = prevValue === '__all__' || activeSessions.some(function(s){ return s.id === prevValue; });
+  picker.value = stillExists ? prevValue : '__all__';
+}
 
 function renderAttendanceSummary() {
-  var wrap = document.getElementById('attendance-summary-list');
+  var wrap = document.getElementById('attendance-chart-wrap');
   if (!wrap) return;
+  var tooltip = document.getElementById('attendance-tooltip');
   wrap.innerHTML = '';
+  wrap.appendChild(tooltip);
+
   if (!activeSessions.length) {
-    wrap.innerHTML = '<div class="attendance-empty">No sessions yet. Add a session to start tracking attendance.</div>';
+    var empty = document.createElement('div');
+    empty.className = 'attendance-empty';
+    empty.textContent = 'No sessions yet. Add a session to start tracking attendance.';
+    wrap.appendChild(empty);
     return;
   }
-  activeSessions.forEach(function(s) {
-    var claimCount = adminParticipants.filter(function(u){ return u.claimedSessions.indexOf(s.id)!==-1; }).length;
-    var row = document.createElement('div');
-    row.className = 'attendance-row';
-    row.innerHTML =
-      '<div class="attendance-row-icon"><i class="ti ' + s.icon + '"></i></div>' +
-      '<div class="attendance-row-body">' +
-        '<div class="attendance-row-name">' + escapeHtml(s.name) + '</div>' +
-        '<div class="attendance-row-meta">' + escapeHtml(s.type) + '</div>' +
-      '</div>' +
-      '<div class="attendance-row-count"><i class="ti ti-users" style="font-size:12px;"></i>' + claimCount + '</div>';
-    wrap.appendChild(row);
+
+  var counts = activeSessions.map(function(s) {
+    return { id: s.id, name: s.name, icon: s.icon, count: adminParticipants.filter(function(u){ return u.claimedSessions.indexOf(s.id)!==-1; }).length };
+  });
+  var maxCount = Math.max(1, Math.max.apply(null, counts.map(function(c){return c.count;})));
+
+  var n = counts.length;
+  var W = 320, H = 170;
+  var padLeft = 16, padRight = 16, padTop = 26, padBottom = 28;
+  var plotW = W - padLeft - padRight, plotH = H - padTop - padBottom;
+  // Single point: place it centered; otherwise space points evenly across the full width.
+  var step = n > 1 ? plotW / (n - 1) : 0;
+
+  var points = counts.map(function(c, i) {
+    var x = n > 1 ? padLeft + step * i : padLeft + plotW / 2;
+    var y = padTop + (plotH - (c.count / maxCount) * plotH);
+    return { x: x, y: y, c: c };
+  });
+
+  // Light horizontal gridlines (0%, 50%, 100% of plot height) for visual reference.
+  var gridLines = [0, 0.5, 1].map(function(f) {
+    var gy = padTop + plotH * f;
+    return '<line class="attendance-grid-line" x1="' + padLeft + '" y1="' + gy + '" x2="' + (padLeft + plotW) + '" y2="' + gy + '"></line>';
+  }).join('');
+
+  var linePath = points.map(function(p, i) { return (i === 0 ? 'M' : 'L') + p.x + ',' + p.y; }).join(' ');
+  var areaPath = linePath +
+    ' L' + points[points.length - 1].x + ',' + (padTop + plotH) +
+    ' L' + points[0].x + ',' + (padTop + plotH) + ' Z';
+
+  var pointsSvg = points.map(function(p, i) {
+    var label = p.c.name.length > 10 ? p.c.name.slice(0, 9) + '…' : p.c.name;
+    return '<g class="attendance-point-group" data-idx="' + i + '" data-name="' + escapeHtml(p.c.name) + '" data-count="' + p.c.count + '">' +
+      '<text class="attendance-value-label" x="' + p.x + '" y="' + (p.y - 10) + '">' + p.c.count + '</text>' +
+      '<circle class="attendance-point-dot" cx="' + p.x + '" cy="' + p.y + '" r="4.5"></circle>' +
+      '<text class="attendance-axis-label" x="' + p.x + '" y="' + (H - padBottom + 14) + '">' + escapeHtml(label) + '</text>' +
+      '<rect x="' + (p.x - (n > 1 ? step/2 : plotW/2)) + '" y="0" width="' + (n > 1 ? step : plotW) + '" height="' + H + '" fill="transparent"></rect>' +
+    '</g>';
+  }).join('');
+
+  var svg = '<svg class="attendance-chart" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">' +
+    gridLines +
+    '<path class="attendance-area-path" d="' + areaPath + '"></path>' +
+    '<path class="attendance-line-path" d="' + linePath + '"></path>' +
+    pointsSvg +
+  '</svg>';
+
+  var chartHolder = document.createElement('div');
+  chartHolder.innerHTML = svg;
+  wrap.insertBefore(chartHolder.firstChild, tooltip);
+
+  var svgEl = wrap.querySelector('.attendance-chart');
+  var linePathEl = svgEl.querySelector('.attendance-line-path');
+  var groups = svgEl.querySelectorAll('.attendance-point-group');
+
+  function showTooltip(group) {
+    groups.forEach(function(g){ g.classList.remove('active'); });
+    group.classList.add('active');
+    linePathEl.style.stroke = 'var(--terra)';
+    var name = group.getAttribute('data-name');
+    var count = group.getAttribute('data-count');
+    tooltip.innerHTML = '<span class="tt-name">' + escapeHtml(name) + '</span><span class="tt-count">' + count + ' attended</span>';
+    tooltip.classList.add('visible');
+    positionTooltip(group);
+  }
+  function positionTooltip(group) {
+    var wrapRect = wrap.getBoundingClientRect();
+    var rect = group.querySelector('.attendance-point-dot').getBoundingClientRect();
+    var left = (rect.left + rect.right) / 2 - wrapRect.left;
+    var top = rect.top - wrapRect.top - 8;
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+  }
+  function hideTooltip() {
+    groups.forEach(function(g){ g.classList.remove('active'); });
+    linePathEl.style.stroke = '';
+    tooltip.classList.remove('visible');
+  }
+
+  groups.forEach(function(g) {
+    g.addEventListener('mouseenter', function(){ showTooltip(g); });
+    g.addEventListener('mousemove', function(){ positionTooltip(g); });
+    g.addEventListener('mouseleave', hideTooltip);
+    g.addEventListener('touchstart', function(e){ e.preventDefault(); showTooltip(g); }, { passive:false });
+  });
+  wrap.addEventListener('touchend', function(e) {
+    if (!e.target.closest('.attendance-point-group')) hideTooltip();
   });
 }
 
@@ -1788,6 +1917,8 @@ async function createSession() {
     adminParticipants = data.participants || [];
     adminAdmins        = data.admins || [];
     activeSessions      = (data.sessions||[]).map(normalizeSession);
+    var newest = activeSessions.find(function(s){ return s.name === name; });
+    if (newest) selectedManageSessionId = newest.id;
     toggleNewSessionForm(false);
     renderAdmin();
   } catch(e) { alert('Error: ' + e.message); }
@@ -1851,86 +1982,117 @@ function buildIconOptions(selected) {
 }
 
 function renderQRManagement() {
+  var picker = document.getElementById('manage-session-picker');
   var list = document.getElementById('qr-mgmt-list');
   list.innerHTML = '';
   Object.keys(countdownTimers).forEach(function(k){ clearInterval(countdownTimers[k]); });
   countdownTimers = {};
 
-  activeSessions.forEach(function(s) {
-    var card = document.createElement('div');
-    card.className = 'qr-mgmt-card';
-    card.id = 'qr-card-' + s.id;
+  if (!activeSessions.length) {
+    picker.innerHTML = '<option value="">No sessions yet</option>';
+    list.innerHTML = '<div class="empty-state"><i class="ti ti-calendar-off"></i><p>No sessions yet. Add a session above to get started.</p></div>';
+    return;
+  }
 
-    var qrIsActive   = s.qrActive && s.qrExpiresAt > Date.now();
-    var codeIsActive = s.codeActive && s.codeExpiresAt > Date.now();
-    var claimCount = adminParticipants.filter(function(u){ return u.claimedSessions.indexOf(s.id)!==-1; }).length;
+  // Keep the previously selected session if it still exists, else default to the first one.
+  if (!activeSessions.some(function(s){ return s.id === selectedManageSessionId; })) {
+    selectedManageSessionId = activeSessions[0].id;
+  }
+  picker.innerHTML = activeSessions.map(function(s) {
+    return '<option value="' + s.id + '"' + (s.id === selectedManageSessionId ? ' selected' : '') + '>' + escapeHtml(s.name) + '</option>';
+  }).join('');
 
-    // Default the visible sub-tab to whichever method is currently active, else QR.
-    var defaultMode = codeIsActive && !qrIsActive ? 'code' : 'qr';
+  renderSingleSessionManageCard(selectedManageSessionId);
+}
 
-    var typeOpts = ['Sharing','Workshop','Keynote','Panel'].map(function(t){
-      return '<option value="'+t+'"'+(t===s.type?' selected':'')+'>'+t+'</option>';
-    }).join('');
+function onManageSessionPickerChange() {
+  var picker = document.getElementById('manage-session-picker');
+  selectedManageSessionId = picker.value;
+  renderSingleSessionManageCard(selectedManageSessionId);
+}
 
-    var editForm =
-      '<div class="sess-edit-form" id="edit-form-'+s.id+'">' +
-        '<div style="display:flex;flex-direction:column;gap:8px;">' +
-          '<div><label class="form-label" style="font-size:10px;">Session Name</label>' +
-          '<input class="edit-form-input" id="ef-name-'+s.id+'" value="'+escapeHtml(s.name)+'" placeholder="Session name"></div>' +
-          '<div class="edit-form-row">' +
-            '<div><label class="form-label" style="font-size:10px;">Type</label>' +
-            '<select class="edit-form-select" id="ef-type-'+s.id+'">'+typeOpts+'</select></div>' +
-            '<div><label class="form-label" style="font-size:10px;">Icon</label>' +
-            '<select class="edit-form-select" id="ef-icon-'+s.id+'">'+buildIconOptions(s.icon)+'</select></div>' +
-          '</div>' +
-          '<div><label class="form-label" style="font-size:10px;">Description</label>' +
-          '<input class="edit-form-input" id="ef-desc-'+s.id+'" value="'+escapeHtml(s.desc)+'" placeholder="Description"></div>' +
-          '<div class="edit-form-row">' +
-            '<div><label class="form-label" style="font-size:10px;">Location</label>' +
-            '<input class="edit-form-input" id="ef-loc-'+s.id+'" value="'+escapeHtml(s.location)+'" placeholder="Location"></div>' +
-            '<div><label class="form-label" style="font-size:10px;">Time</label>' +
-            '<input class="edit-form-input" id="ef-time-'+s.id+'" value="'+escapeHtml(s.time)+'" placeholder="Time"></div>' +
-          '</div>' +
-          '<div class="edit-form-actions">' +
-            '<button class="btn-save" id="btn-save-'+s.id+'" onclick="saveSession(\''+s.id+'\')"><i class="ti ti-check"></i> Save</button>' +
-            '<button class="btn-cancel-edit" onclick="toggleEditForm(\''+s.id+'\')">Cancel</button>' +
-          '</div>' +
+function renderSingleSessionManageCard(sessionId) {
+  var list = document.getElementById('qr-mgmt-list');
+  list.innerHTML = '';
+  Object.keys(countdownTimers).forEach(function(k){ clearInterval(countdownTimers[k]); });
+  countdownTimers = {};
+
+  var s = activeSessions.find(function(x){ return x.id === sessionId; });
+  if (!s) return;
+
+  var card = document.createElement('div');
+  card.className = 'qr-mgmt-card';
+  card.id = 'qr-card-' + s.id;
+
+  var qrIsActive   = s.qrActive && s.qrExpiresAt > Date.now();
+  var codeIsActive = s.codeActive && s.codeExpiresAt > Date.now();
+  var claimCount = adminParticipants.filter(function(u){ return u.claimedSessions.indexOf(s.id)!==-1; }).length;
+
+  // Default the visible sub-tab to whichever method is currently active, else QR.
+  var defaultMode = codeIsActive && !qrIsActive ? 'code' : 'qr';
+
+  var typeOpts = ['Sharing','Workshop','Keynote','Panel'].map(function(t){
+    return '<option value="'+t+'"'+(t===s.type?' selected':'')+'>'+t+'</option>';
+  }).join('');
+
+  var editForm =
+    '<div class="sess-edit-form" id="edit-form-'+s.id+'">' +
+      '<div style="display:flex;flex-direction:column;gap:8px;">' +
+        '<div><label class="form-label" style="font-size:10px;">Session Name</label>' +
+        '<input class="edit-form-input" id="ef-name-'+s.id+'" value="'+escapeHtml(s.name)+'" placeholder="Session name"></div>' +
+        '<div class="edit-form-row">' +
+          '<div><label class="form-label" style="font-size:10px;">Type</label>' +
+          '<select class="edit-form-select" id="ef-type-'+s.id+'">'+typeOpts+'</select></div>' +
+          '<div><label class="form-label" style="font-size:10px;">Icon</label>' +
+          '<select class="edit-form-select" id="ef-icon-'+s.id+'">'+buildIconOptions(s.icon)+'</select></div>' +
         '</div>' +
-      '</div>';
-
-    card.innerHTML =
-      '<div class="qr-mgmt-top">' +
-        '<div class="qr-mgmt-top-left">' +
-          '<div class="qr-mgmt-name"><i class="ti '+s.icon+'" style="font-size:12px;margin-right:4px;color:var(--terra);"></i>'+escapeHtml(s.name)+'</div>' +
-          '<div class="qr-mgmt-meta">'+escapeHtml(s.type)+' · <span class="scan-count-badge"><i class="ti ti-users" style="font-size:10px;"></i>'+claimCount+' scanned</span></div>' +
+        '<div><label class="form-label" style="font-size:10px;">Description</label>' +
+        '<input class="edit-form-input" id="ef-desc-'+s.id+'" value="'+escapeHtml(s.desc)+'" placeholder="Description"></div>' +
+        '<div class="edit-form-row">' +
+          '<div><label class="form-label" style="font-size:10px;">Location</label>' +
+          '<input class="edit-form-input" id="ef-loc-'+s.id+'" value="'+escapeHtml(s.location)+'" placeholder="Location"></div>' +
+          '<div><label class="form-label" style="font-size:10px;">Time</label>' +
+          '<input class="edit-form-input" id="ef-time-'+s.id+'" value="'+escapeHtml(s.time)+'" placeholder="Time"></div>' +
         '</div>' +
-        '<div style="display:flex;align-items:center;gap:6px;">' +
-          '<button class="btn-icon" title="Edit session" onclick="toggleEditForm(\''+s.id+'\')"><i class="ti ti-pencil"></i></button>' +
-          '<button class="btn-icon danger" title="Delete session" onclick="deleteSession(\''+s.id+'\',\''+s.name.replace(/'/g,"\\'")+'\')">' +
-            '<i class="ti ti-trash"></i></button>' +
+        '<div class="edit-form-actions">' +
+          '<button class="btn-save" id="btn-save-'+s.id+'" onclick="saveSession(\''+s.id+'\')"><i class="ti ti-check"></i> Save</button>' +
+          '<button class="btn-cancel-edit" onclick="toggleEditForm(\''+s.id+'\')">Cancel</button>' +
         '</div>' +
       '</div>' +
-      editForm +
-      '<div class="tabset">' +
-        '<button class="subtab'+(defaultMode==='qr'?' active':'')+'" id="subtab-qr-'+s.id+'" onclick="setCheckinMode(\''+s.id+'\',\'qr\')"><i class="ti ti-qrcode"></i> QR Code</button>' +
-        '<button class="subtab'+(defaultMode==='code'?' active checkin-active':'')+'" id="subtab-code-'+s.id+'" onclick="setCheckinMode(\''+s.id+'\',\'code\')"><i class="ti ti-keyboard"></i> Check-In Code</button>' +
+    '</div>';
+
+  card.innerHTML =
+    '<div class="qr-mgmt-top">' +
+      '<div class="qr-mgmt-top-left">' +
+        '<div class="qr-mgmt-name"><i class="ti '+s.icon+'" style="font-size:12px;margin-right:4px;color:var(--terra);"></i>'+escapeHtml(s.name)+'</div>' +
+        '<div class="qr-mgmt-meta">'+escapeHtml(s.type)+' · <span class="scan-count-badge"><i class="ti ti-users" style="font-size:10px;"></i>'+claimCount+' scanned</span></div>' +
       '</div>' +
-      '<div id="mode-qr-'+s.id+'" style="display:'+(defaultMode==='qr'?'block':'none')+';">' + buildQrModeHtml(s, qrIsActive) + '</div>' +
-      '<div id="mode-code-'+s.id+'" style="display:'+(defaultMode==='code'?'block':'none')+';">' + buildCodeModeHtml(s, codeIsActive) + '</div>';
+      '<div style="display:flex;align-items:center;gap:6px;">' +
+        '<button class="btn-icon" title="Edit session" onclick="toggleEditForm(\''+s.id+'\')"><i class="ti ti-pencil"></i></button>' +
+        '<button class="btn-icon danger" title="Delete session" onclick="deleteSession(\''+s.id+'\',\''+s.name.replace(/'/g,"\\'")+'\')">' +
+          '<i class="ti ti-trash"></i></button>' +
+      '</div>' +
+    '</div>' +
+    editForm +
+    '<div class="tabset">' +
+      '<button class="subtab'+(defaultMode==='qr'?' active':'')+'" id="subtab-qr-'+s.id+'" onclick="setCheckinMode(\''+s.id+'\',\'qr\')"><i class="ti ti-qrcode"></i> QR Code</button>' +
+      '<button class="subtab'+(defaultMode==='code'?' active checkin-active':'')+'" id="subtab-code-'+s.id+'" onclick="setCheckinMode(\''+s.id+'\',\'code\')"><i class="ti ti-keyboard"></i> Check-In Code</button>' +
+    '</div>' +
+    '<div id="mode-qr-'+s.id+'" style="display:'+(defaultMode==='qr'?'block':'none')+';">' + buildQrModeHtml(s, qrIsActive) + '</div>' +
+    '<div id="mode-code-'+s.id+'" style="display:'+(defaultMode==='code'?'block':'none')+';">' + buildCodeModeHtml(s, codeIsActive) + '</div>';
 
-    list.appendChild(card);
+  list.appendChild(card);
 
-    if (qrIsActive && s.qrToken) {
-      try {
-        new QRCode(document.getElementById('qr-img-'+s.id), {
-          text: s.qrToken, width: 148, height: 148,
-          colorDark: '#2C1F14', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.L
-        });
-      } catch(e) { console.warn('QR render failed', e); }
-    }
-    if (qrIsActive)   startCountdown(s.id, s.qrExpiresAt, 'cd-qr-');
-    if (codeIsActive) startCountdown(s.id, s.codeExpiresAt, 'cd-code-');
-  });
+  if (qrIsActive && s.qrToken) {
+    try {
+      new QRCode(document.getElementById('qr-img-'+s.id), {
+        text: s.qrToken, width: 148, height: 148,
+        colorDark: '#2C1F14', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.L
+      });
+    } catch(e) { console.warn('QR render failed', e); }
+  }
+  if (qrIsActive)   startCountdown(s.id, s.qrExpiresAt, 'cd-qr-');
+  if (codeIsActive) startCountdown(s.id, s.codeExpiresAt, 'cd-code-');
 }
 
 function buildQrModeHtml(s, isActive) {
@@ -1961,7 +2123,6 @@ function buildQrModeHtml(s, isActive) {
         '</div>' +
         (isActive ? '<button class="btn-deactivate" onclick="deactivateQRCode(\''+s.id+'\')"><i class="ti ti-x"></i> Deactivate</button>' : '') +
         countdownHtml +
-        '<button class="btn-download-history" onclick="downloadSessionScanHistory(\''+s.id+'\')"><i class="ti ti-table-export"></i> Download scan history</button>' +
       '</div>' +
     '</div>';
 }
@@ -1993,7 +2154,6 @@ function buildCodeModeHtml(s, isActive) {
         '</div>' +
         (isActive ? '<button class="btn-deactivate" onclick="deactivateCheckInCodeAdmin(\''+s.id+'\')"><i class="ti ti-x"></i> Deactivate</button>' : '') +
         countdownHtml +
-        '<button class="btn-download-history" onclick="downloadSessionScanHistory(\''+s.id+'\')"><i class="ti ti-table-export"></i> Download scan history</button>' +
       '</div>' +
     '</div>';
 }
@@ -2032,7 +2192,7 @@ async function activateQR(sessionId) {
       activeSessions[idx].qrExpiresAt = data.expiresAtMs;
       activeSessions[idx].qrToken = data.token;
     }
-    renderQRManagement();
+    renderSingleSessionManageCard(sessionId);
   } catch(e) { alert('Error: '+e.message); }
   finally { restore(btnId); }
 }
@@ -2041,7 +2201,7 @@ async function deactivateQRCode(sessionId) {
     await apiRequest('deactivateQR', { trackId: activeTrack.id, sessionId: sessionId });
     var idx = activeSessions.findIndex(function(s){ return s.id===sessionId; });
     if (idx !== -1) { activeSessions[idx].qrActive = false; activeSessions[idx].qrToken=''; activeSessions[idx].qrExpiresAt=0; }
-    renderQRManagement();
+    renderSingleSessionManageCard(sessionId);
   } catch(e) { alert('Error: '+e.message); }
 }
 async function activateCheckInCode(sessionId) {
@@ -2056,7 +2216,7 @@ async function activateCheckInCode(sessionId) {
       activeSessions[idx].codeExpiresAt = data.expiresAtMs;
       activeSessions[idx].codeValue = data.code;
     }
-    renderQRManagement();
+    renderSingleSessionManageCard(sessionId);
     setCheckinMode(sessionId, 'code');
   } catch(e) { alert('Error: '+e.message); }
   finally { restore(btnId); }
@@ -2066,7 +2226,7 @@ async function deactivateCheckInCodeAdmin(sessionId) {
     await apiRequest('deactivateCheckInCode', { trackId: activeTrack.id, sessionId: sessionId });
     var idx = activeSessions.findIndex(function(s){ return s.id===sessionId; });
     if (idx !== -1) { activeSessions[idx].codeActive = false; activeSessions[idx].codeValue=''; activeSessions[idx].codeExpiresAt=0; }
-    renderQRManagement();
+    renderSingleSessionManageCard(sessionId);
     setCheckinMode(sessionId, 'code');
   } catch(e) { alert('Error: '+e.message); }
 }
@@ -2132,6 +2292,16 @@ function downloadAllSessionScanHistory() {
     if (!found) rows.push([session.id, session.name,'','','','No scans yet']);
   });
   downloadCsv('all-session-scan-history.csv', rows);
+}
+function downloadSelectedHistory() {
+  var picker = document.getElementById('history-session-picker');
+  var value = picker ? picker.value : '__all__';
+  if (!activeSessions.length) { alert('No sessions to export yet.'); return; }
+  if (value === '__all__') {
+    downloadAllSessionScanHistory();
+  } else {
+    downloadSessionScanHistory(value);
+  }
 }
 
 // ── Participants table ──
