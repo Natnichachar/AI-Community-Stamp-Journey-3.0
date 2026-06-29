@@ -1059,6 +1059,21 @@ function initialsOf(name) {
   return String(name||'').split(' ').filter(Boolean).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2)||'U';
 }
 
+// ── Last-view persistence (so a page refresh returns to where the user was) ──
+var LAST_VIEW_KEY = 'stampJourneyLastView';
+function saveLastView(view) {
+  try { localStorage.setItem(LAST_VIEW_KEY, JSON.stringify(view)); } catch(e) {}
+}
+function clearLastView() {
+  try { localStorage.removeItem(LAST_VIEW_KEY); } catch(e) {}
+}
+function getLastView() {
+  try {
+    var raw = localStorage.getItem(LAST_VIEW_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
 // ── Session restore ──
 (function init() {
   var saved = localStorage.getItem('stampJourneySession');
@@ -1115,6 +1130,7 @@ function finishAuth(data) {
 }
 function logout() {
   localStorage.removeItem('stampJourneySession');
+  clearLastView();
   currentUser = null; myTracks = []; activeTrack = null; activeProfile = null; activeSessions = [];
   adminParticipants = []; adminAdmins = [];
   Object.values(countdownTimers).forEach(clearInterval); countdownTimers = {};
@@ -1123,6 +1139,18 @@ function logout() {
 async function bootUser() {
   if (!currentUser) return;
   await loadDashboard();
+  var last = getLastView();
+  if (last && last.trackId && (last.screen === 'admin' || last.screen === 'participant')) {
+    var stillHasTrack = myTracks.some(function(t){ return t.id === last.trackId; });
+    if (stillHasTrack) {
+      await openTrack(last.trackId, last.screen === 'admin' ? 'admin' : 'participant');
+      // openParticipantTrack/openAdminTrack only call showScreen() on success (they alert()
+      // and swallow errors otherwise), so check whether navigation actually happened.
+      var landedScreen = document.querySelector('.screen.active');
+      if (landedScreen && landedScreen.id !== 'screen-auth') return;
+    }
+  }
+  clearLastView();
   showScreen('dashboard');
 }
 function showScreen(name) {
@@ -1188,6 +1216,7 @@ async function handleJoinTrack() {
 
 function goToDashboard() {
   Object.values(countdownTimers).forEach(clearInterval); countdownTimers = {};
+  clearLastView();
   loadDashboard();
   showScreen('dashboard');
 }
@@ -1297,6 +1326,7 @@ async function openParticipantTrack(trackId) {
     activeSessions = (data.sessions||[]).map(normalizeSession);
     renderParticipant();
     showScreen('participant');
+    saveLastView({ screen: 'participant', trackId: trackId });
   } catch(e) { alert('Could not open track: ' + e.message); }
 }
 
@@ -1589,6 +1619,7 @@ async function openAdminTrack(trackId) {
     renderAdmin();
     showScreen('admin');
     maybeAddManageButton();
+    saveLastView({ screen: 'admin', trackId: trackId });
   } catch(e) { alert('Could not open track: ' + e.message); }
 }
 
