@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stamp Journey</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -23,7 +23,7 @@
   --gray:#6B7280;--gray-l:#F3F4F6;
   --red:#DC2626;--red-l:#FEE2E2;
   --amber:#D97706;--amber-l:#FEF3C7;
-  --font:'Montserrat',sans-serif;
+  --font:'Open Sans',sans-serif;
   --r-sm:10px;--r-md:14px;--r-lg:20px;--r-xl:26px;
   --shadow:0 2px 12px rgba(44,31,20,.08);
   --shadow-lg:0 8px 32px rgba(44,31,20,.14);
@@ -65,14 +65,15 @@ body{background:#E4DDD5;min-height:100vh;display:flex;justify-content:center;fon
 .success-msg{background:var(--green-l);border:1px solid #86C9AC;border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:var(--green-d);margin-bottom:14px;display:none;}
 
 /* ══ SHARED HEADER ══ */
-.p-header{background:var(--terra);padding:24px 20px 22px;}
+.p-header{background:linear-gradient(135deg, #ff9956, #ff6727);padding:24px 20px 22px;}
+.p-header-title,.p-header-subtitle,.p-header-welcome,.p-header-sub{text-shadow:0 1px 2px rgba(0,0,0,.2);}
 .p-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .p-header-brand{display:flex;align-items:center;gap:10px;}
 .p-header-icon{width:38px;height:38px;background:rgba(255,255,255,.2);border-radius:11px;display:flex;align-items:center;justify-content:center;}
 .p-header-icon i{font-size:20px;color:#fff;}
 .p-header-title{font-size:16px;font-weight:700;color:#fff;}
 .p-header-subtitle{font-size:12px;color:rgba(255,255,255,.7);}
-.btn-ghost{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:9px;padding:7px 12px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.btn-ghost{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:9px;padding:7px 12px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px;flex-shrink:0;text-shadow:0 1px 2px rgba(0,0,0,.2);}
 .btn-back{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:9px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:16px;flex-shrink:0;}
 .p-header-welcome{font-size:22px;font-weight:700;color:#fff;margin-bottom:3px;}
 .p-header-sub{font-size:13px;color:rgba(255,255,255,.7);}
@@ -83,7 +84,7 @@ body{background:#E4DDD5;min-height:100vh;display:flex;justify-content:center;fon
 .mt-16{margin-top:16px;}.mt-12{margin-top:12px;}.mb-10{margin-bottom:10px;}
 
 /* ══ DASHBOARD ══ */
-.dash-header{background:var(--navy);padding:24px 20px 22px;}
+.dash-header{background:linear-gradient(135deg, #ff9956, #ff6727);padding:24px 20px 22px;}
 .join-card{background:#fff;border-radius:var(--r-lg);border:.5px solid #E8DDD4;padding:18px;box-shadow:var(--shadow);margin-bottom:14px;}
 .join-card h4{font-size:13px;font-weight:700;color:var(--tm);margin-bottom:4px;}
 .join-card p{font-size:12px;color:var(--ts);margin-bottom:12px;line-height:1.5;}
@@ -166,7 +167,28 @@ body{background:#E4DDD5;min-height:100vh;display:flex;justify-content:center;fon
 .qr-sub{font-size:11px;color:var(--ts);}
 .qr-card.redeemed-qr .qr-lbl,.qr-card.redeemed-qr .qr-sub{color:#999;}
 .redeemed-tag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;background:#E0D8D0;color:#888;margin-top:6px;}
+/* ── Text-centric reward list (replaces visual QR cards) ── */
+.reward-list{display:flex;flex-direction:column;gap:9px;}
+.reward-list-empty{font-size:12px;color:var(--ts);text-align:center;padding:14px 0;}
+.reward-list-item{display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:var(--r-md);border:1.5px solid #E8DDD4;background:#fff;transition:.3s;}
+.reward-list-item.eligible{border-color:var(--terra);background:var(--terra-p);}
+.reward-list-item.redeemed{border-color:#C4B5A8;background:#F5F2EE;}
+.reward-list-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--navy);color:#fff;font-size:16px;}
+.reward-list-item.redeemed .reward-list-icon{background:#B0A898;}
+.reward-list-item.eligible .reward-list-icon{background:var(--terra);}
+.reward-list-body{flex:1;min-width:0;}
+.reward-list-name{font-size:13px;font-weight:700;color:var(--tm);line-height:1.3;}
+.reward-list-sub{font-size:11px;color:var(--ts);margin-top:1px;}
+.reward-status{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;white-space:nowrap;flex-shrink:0;}
+.reward-status.eligible{background:var(--terra);color:#fff;}
+.reward-status.redeemed{background:#E0D8D0;color:#888;}
+.reward-status.locked{background:var(--gray-l);color:var(--gray);}
 .sess-grid{display:grid;gap:10px;}
+.sess-pagination{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;}
+.btn-page{background:#fff;color:var(--terra);border:1.5px solid var(--terra-l);border-radius:var(--r-sm);padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px;transition:background .2s;}
+.btn-page:hover{background:var(--terra-p);}
+.btn-page:disabled{opacity:.4;cursor:not-allowed;background:#fff;}
+.page-indicator{font-size:12px;font-weight:600;color:var(--ts);flex-shrink:0;}
 .sess-card{background:#fff;border-radius:var(--r-md);border:.5px solid #E8DDD4;padding:14px 15px;display:flex;gap:12px;align-items:flex-start;box-shadow:var(--shadow);}
 .sess-ic{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .sess-ic.col{background:var(--terra-p);}.sess-ic.col i{color:var(--terra);}
@@ -235,13 +257,15 @@ body{background:#E4DDD5;min-height:100vh;display:flex;justify-content:center;fon
 .basic-modal-body{padding:20px;overflow-y:auto;}
 
 /* ══ ADMIN ══ */
-.a-header{background:var(--navy);padding:24px 20px 20px;}
+.a-header{background:linear-gradient(135deg, #ff6727, #c43400);padding:24px 20px 20px;}
+.a-header h2,.a-header p{text-shadow:0 1px 2px rgba(0,0,0,.2);}
 .a-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;}
+.a-header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .a-header h2{font-size:18px;font-weight:700;color:#fff;}
 .a-header p{font-size:12px;color:rgba(255,255,255,.65);}
 .admin-tabs{display:flex;background:rgba(255,255,255,.12);border-radius:var(--r-md);padding:4px;margin-top:14px;}
-.admin-tab{flex:1;padding:9px 0;font-size:12px;font-weight:700;text-align:center;cursor:pointer;border:none;background:transparent;border-radius:9px;color:rgba(255,255,255,.75);font-family:var(--font);transition:.2s;}
-.admin-tab.active{background:#fff;color:var(--navy);}
+.admin-tab{flex:1;padding:9px 0;font-size:12px;font-weight:700;text-align:center;cursor:pointer;border:none;background:transparent;border-radius:9px;color:rgba(255,255,255,.75);font-family:var(--font);transition:.2s;text-shadow:0 1px 2px rgba(0,0,0,.2);}
+.admin-tab.active{background:#fff;color:var(--navy);text-shadow:none;}
 .admin-pane{display:none;}
 .admin-pane.active{display:block;}
 .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
@@ -250,6 +274,21 @@ body{background:#E4DDD5;min-height:100vh;display:flex;justify-content:center;fon
 .stat-num.green{color:var(--green);}
 .stat-lbl{font-size:11px;color:var(--ts);font-weight:600;margin-top:3px;}
 .qr-mgmt-list{display:grid;gap:10px;}
+/* ── Collapsible accordion sections (Attendance Summary, Manage Sessions) ── */
+.collapsible-section{background:#fff;border-radius:var(--r-lg);border:.5px solid #E8DDD4;box-shadow:var(--shadow);overflow:hidden;}
+.collapsible-summary{list-style:none;cursor:pointer;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--tm);}
+.collapsible-summary::-webkit-details-marker{display:none;}
+.collapsible-chevron{font-size:16px;color:var(--terra);transition:transform .2s;flex-shrink:0;}
+.collapsible-section[open] .collapsible-chevron{transform:rotate(180deg);}
+.collapsible-body{padding:0 16px 16px;}
+.attendance-list{display:flex;flex-direction:column;gap:8px;}
+.attendance-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--cream);border-radius:var(--r-sm);}
+.attendance-row-icon{width:30px;height:30px;border-radius:50%;background:var(--terra-p);color:var(--terra);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;}
+.attendance-row-body{flex:1;min-width:0;}
+.attendance-row-name{font-size:12px;font-weight:700;color:var(--tm);}
+.attendance-row-meta{font-size:11px;color:var(--ts);}
+.attendance-row-count{font-size:13px;font-weight:700;color:var(--terra);display:flex;align-items:center;gap:5px;flex-shrink:0;background:#fff;border-radius:99px;padding:4px 11px;border:1px solid var(--terra-l);}
+.attendance-empty{text-align:center;padding:18px 10px;color:var(--ts);font-size:12px;}
 .qr-mgmt-card{background:#fff;border-radius:var(--r-md);border:.5px solid #E8DDD4;padding:14px 16px;box-shadow:var(--shadow);overflow:hidden;}
 .qr-mgmt-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
 .qr-mgmt-top-left{flex:1;min-width:0;}
@@ -401,6 +440,16 @@ body{background:#E4DDD5;min-height:100vh;display:flex;justify-content:center;fon
 .danger-zone h4{font-size:12px;font-weight:700;color:var(--red);margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px;}
 .btn-danger{width:100%;padding:13px;background:#fff;color:var(--red);border:1.5px solid var(--red);border-radius:var(--r-md);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s;}
 .btn-danger:hover{background:var(--red-l);}
+
+/* ── Preview Participant View modal ── */
+.preview-modal{max-height:92vh;}
+.preview-banner{background:var(--amber-l);color:var(--amber);font-size:12px;font-weight:600;padding:10px 16px;display:flex;align-items:center;gap:7px;flex-shrink:0;border-bottom:1px solid #F3DFAE;}
+.preview-banner i{font-size:15px;flex-shrink:0;}
+.preview-modal-body{padding:0;background:var(--cream);overflow-y:auto;}
+.preview-inert-wrap{pointer-events:none;user-select:none;}
+.preview-inert-wrap .screen{display:flex;min-height:0;position:relative;}
+.preview-inert-wrap .p-body{padding-bottom:24px;}
+.preview-inert-wrap .btn-back{visibility:hidden;}
 </style>
 </head>
 <body>
@@ -597,7 +646,6 @@ body{background:#E4DDD5;min-height:100vh;display:flex;justify-content:center;fon
     <div class="section">
       <div class="slabel">Your stamp card</div>
       <div class="card">
-        <div class="ms-row" id="p-milestone-row"></div>
         <div class="track">
           <div class="track-lbl" id="p-track-lbl"></div>
           <div class="tline"><div class="tfill" id="p-fill"></div></div>
@@ -607,14 +655,10 @@ body{background:#E4DDD5;min-height:100vh;display:flex;justify-content:center;fon
         <p class="ptxt">Collected: <strong id="p-count">0</strong> / <span id="p-total">10</span> stamps</p>
         <div class="qr-section">
           <h4>Your rewards</h4>
-          <p>Show your QR code to the facilitator to redeem. Only the facilitator can mark it as redeemed.</p>
-          <div class="qr-cards" id="p-reward-cards"></div>
+          <p>Show the list below to the facilitator to redeem. Only the facilitator can mark a reward as redeemed.</p>
+          <div class="reward-list" id="p-reward-cards"></div>
         </div>
       </div>
-    </div>
-    <div class="section mt-16">
-      <div class="slabel">Sessions</div>
-      <div class="sess-grid" id="p-sessions"></div>
     </div>
     <div class="p-actions">
       <div id="p-milestone-msgs"></div>
@@ -624,6 +668,15 @@ body{background:#E4DDD5;min-height:100vh;display:flex;justify-content:center;fon
       <button class="btn-checkin" id="btn-open-checkin" onclick="openCheckInModal()">
         <i class="ti ti-keyboard"></i> Check In With Code
       </button>
+    </div>
+    <div class="section mt-16">
+      <div class="slabel">Sessions</div>
+      <div class="sess-grid" id="p-sessions"></div>
+      <div class="sess-pagination" id="p-sessions-pagination">
+        <button class="btn-page" id="p-sess-prev" onclick="changeSessionPage(-1)"><i class="ti ti-chevron-left"></i> Previous</button>
+        <span class="page-indicator" id="p-sess-page-indicator">Page 1 of 1</span>
+        <button class="btn-page" id="p-sess-next" onclick="changeSessionPage(1)">Next <i class="ti ti-chevron-right"></i></button>
+      </div>
     </div>
   </div>
 </div>
@@ -639,7 +692,10 @@ body{background:#E4DDD5;min-height:100vh;display:flex;justify-content:center;fon
           <p id="a-logged-as"></p>
         </div>
       </div>
-      <button class="btn-ghost" onclick="logout()"><i class="ti ti-logout" style="font-size:13px;"></i> Sign out</button>
+      <div class="a-header-actions">
+        <button class="btn-ghost" onclick="openPreviewParticipantView()"><i class="ti ti-eye" style="font-size:13px;"></i> Preview View</button>
+        <button class="btn-ghost" onclick="logout()"><i class="ti ti-logout" style="font-size:13px;"></i> Sign out</button>
+      </div>
     </div>
     <div class="admin-tabs">
       <button class="admin-tab active" id="atab-sessions" onclick="setAdminTab('sessions')">Sessions</button>
@@ -659,70 +715,88 @@ body{background:#E4DDD5;min-height:100vh;display:flex;justify-content:center;fon
         </div>
       </div>
       <div class="section mt-16">
-        <div class="slabel">Sessions &amp; Check-In</div>
-        <button class="btn-download-history" onclick="downloadAllSessionScanHistory()" style="margin-bottom:10px;">
-          <i class="ti ti-table-export"></i> Download all scan history
-        </button>
-        <button class="btn-add-session" id="btn-show-new-form" onclick="toggleNewSessionForm(true)">
-          <i class="ti ti-plus"></i> Add New Session
-        </button>
-        <div class="new-session-form" id="new-session-form">
-          <h4><i class="ti ti-plus" style="font-size:13px;color:var(--terra);margin-right:4px;"></i>New Session</h4>
-          <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label" style="font-size:11px;">Session Name</label>
-            <input class="new-form-input" id="new-sess-name" type="text" placeholder="e.g. Session 11">
+        <details class="collapsible-section" id="attendance-summary-details" open>
+          <summary class="collapsible-summary">
+            <span><i class="ti ti-chart-bar" style="margin-right:6px;color:var(--terra);"></i>Session Attendance Summary</span>
+            <i class="ti ti-chevron-down collapsible-chevron"></i>
+          </summary>
+          <div class="collapsible-body">
+            <div class="attendance-list" id="attendance-summary-list"></div>
           </div>
-          <div class="new-form-row">
-            <div>
-              <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Type</label>
-              <select class="new-form-select" id="new-sess-type">
-                <option value="Sharing">Sharing</option>
-                <option value="Workshop">Workshop</option>
-                <option value="Keynote">Keynote</option>
-                <option value="Panel">Panel</option>
-              </select>
-            </div>
-            <div>
-              <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Icon</label>
-              <select class="new-form-select" id="new-sess-icon">
-                <option value="ti-brain">Brain</option>
-                <option value="ti-tools">Tools</option>
-                <option value="ti-users">Users</option>
-                <option value="ti-layout-dashboard">Dashboard</option>
-                <option value="ti-shield-check">Shield</option>
-                <option value="ti-rocket">Rocket</option>
-                <option value="ti-sparkles">Sparkles</option>
-                <option value="ti-pencil">Pencil</option>
-                <option value="ti-chart-bar">Chart</option>
-                <option value="ti-confetti">Confetti</option>
-                <option value="ti-bulb">Bulb</option>
-                <option value="ti-star">Star</option>
-                <option value="ti-award">Award</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Description</label>
-            <input class="new-form-input" id="new-sess-desc" type="text" placeholder="Short description of this session">
-          </div>
-          <div class="new-form-row">
-            <div>
-              <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Location</label>
-              <input class="new-form-input" id="new-sess-loc" type="text" placeholder="e.g. Hall A">
-            </div>
-            <div>
-              <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Time</label>
-              <input class="new-form-input" id="new-sess-time" type="text" placeholder="e.g. 10:00 AM">
-            </div>
-          </div>
-          <div class="new-form-actions">
-            <button class="btn-create" id="btn-create-session" onclick="createSession()">
-              <i class="ti ti-check"></i> Create Session
+        </details>
+      </div>
+      <div class="section mt-16">
+        <details class="collapsible-section" id="manage-sessions-details" open>
+          <summary class="collapsible-summary">
+            <span><i class="ti ti-list-details" style="margin-right:6px;color:var(--terra);"></i>Manage Sessions</span>
+            <i class="ti ti-chevron-down collapsible-chevron"></i>
+          </summary>
+          <div class="collapsible-body">
+            <button class="btn-download-history" onclick="downloadAllSessionScanHistory()" style="margin-bottom:10px;">
+              <i class="ti ti-table-export"></i> Download all scan history
             </button>
-            <button class="btn-cancel-new" onclick="toggleNewSessionForm(false)">Cancel</button>
+            <button class="btn-add-session" id="btn-show-new-form" onclick="toggleNewSessionForm(true)">
+              <i class="ti ti-plus"></i> Add New Session
+            </button>
+            <div class="new-session-form" id="new-session-form">
+              <h4><i class="ti ti-plus" style="font-size:13px;color:var(--terra);margin-right:4px;"></i>New Session</h4>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" style="font-size:11px;">Session Name</label>
+                <input class="new-form-input" id="new-sess-name" type="text" placeholder="e.g. Session 11">
+              </div>
+              <div class="new-form-row">
+                <div>
+                  <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Type</label>
+                  <select class="new-form-select" id="new-sess-type">
+                    <option value="Sharing">Sharing</option>
+                    <option value="Workshop">Workshop</option>
+                    <option value="Keynote">Keynote</option>
+                    <option value="Panel">Panel</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Icon</label>
+                  <select class="new-form-select" id="new-sess-icon">
+                    <option value="ti-brain">Brain</option>
+                    <option value="ti-tools">Tools</option>
+                    <option value="ti-users">Users</option>
+                    <option value="ti-layout-dashboard">Dashboard</option>
+                    <option value="ti-shield-check">Shield</option>
+                    <option value="ti-rocket">Rocket</option>
+                    <option value="ti-sparkles">Sparkles</option>
+                    <option value="ti-pencil">Pencil</option>
+                    <option value="ti-chart-bar">Chart</option>
+                    <option value="ti-confetti">Confetti</option>
+                    <option value="ti-bulb">Bulb</option>
+                    <option value="ti-star">Star</option>
+                    <option value="ti-award">Award</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Description</label>
+                <input class="new-form-input" id="new-sess-desc" type="text" placeholder="Short description of this session">
+              </div>
+              <div class="new-form-row">
+                <div>
+                  <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Location</label>
+                  <input class="new-form-input" id="new-sess-loc" type="text" placeholder="e.g. Hall A">
+                </div>
+                <div>
+                  <label class="form-label" style="font-size:11px;display:block;margin-bottom:5px;">Time</label>
+                  <input class="new-form-input" id="new-sess-time" type="text" placeholder="e.g. 10:00 AM">
+                </div>
+              </div>
+              <div class="new-form-actions">
+                <button class="btn-create" id="btn-create-session" onclick="createSession()">
+                  <i class="ti ti-check"></i> Create Session
+                </button>
+                <button class="btn-cancel-new" onclick="toggleNewSessionForm(false)">Cancel</button>
+              </div>
+            </div>
+            <div class="qr-mgmt-list" id="qr-mgmt-list"></div>
           </div>
-        </div>
-        <div class="qr-mgmt-list" id="qr-mgmt-list"></div>
+        </details>
       </div>
     </div>
 
@@ -824,6 +898,22 @@ body{background:#E4DDD5;min-height:100vh;display:flex;justify-content:center;fon
   </div>
 </div>
 
+<!-- ══ PREVIEW PARTICIPANT VIEW MODAL (admin-only, read-only) ══ -->
+<div class="modal-overlay basic" id="preview-overlay">
+  <div class="basic-modal preview-modal">
+    <div class="basic-modal-header">
+      <h3><i class="ti ti-eye" style="margin-right:6px;"></i>Preview: Participant View</h3>
+      <button class="btn-close-modal" onclick="closePreviewParticipantView()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="preview-banner">
+      <i class="ti ti-lock"></i> Read-only preview — this is exactly what a participant sees. Interactions are disabled.
+    </div>
+    <div class="basic-modal-body preview-modal-body">
+      <div class="preview-inert-wrap" id="preview-inert-wrap"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════
      JAVASCRIPT
 ══════════════════════════════════ -->
@@ -845,6 +935,8 @@ var scanAnimFrame    = null;
 var scanDone         = false;
 var countdownTimers  = {};
 var lastCreatedAccessCode = '';
+var participantSessionPage = 0;
+var SESSIONS_PER_PAGE = 5;
 
 // ── API ──
 function apiRequest(action, payload) {
@@ -1176,28 +1268,14 @@ function renderParticipant() {
   document.getElementById('p-track-name').textContent = t.name;
   document.getElementById('p-welcome').textContent  = 'Hello, ' + u.name.split(' ')[0] + ' 👋';
   document.getElementById('p-facility').textContent = u.facility + ' · ' + u.email;
-  renderMilestoneCards();
   renderStampGrid();
-  renderRewardQRCards();
+  renderRewardList();
   renderMilestoneMessages();
+  participantSessionPage = 0;
   renderSessions();
   var totalStamps = Number(p.template.totalStamps || 0) || (p.milestones.length ? p.milestones[p.milestones.length-1].position : 10);
   document.getElementById('btn-open-scanner').disabled = p.stamps >= totalStamps;
   document.getElementById('btn-open-checkin').disabled = p.stamps >= totalStamps;
-}
-
-function renderMilestoneCards() {
-  var row = document.getElementById('p-milestone-row');
-  row.innerHTML = '';
-  activeProfile.milestones.forEach(function(m) {
-    var card = document.createElement('div');
-    card.className = 'ms-card' + (m.redeemed ? ' redeemed' : (m.eligible ? ' unlocked' : ''));
-    var sub = m.redeemed ? 'Redeemed ✓' : (m.eligible ? 'Unlocked!' : ('Unlock at ' + m.position + ' stamps'));
-    card.innerHTML =
-      '<div class="ms-gfx"><i class="ti ' + (m.icon||'ti-gift') + '"></i></div>' +
-      '<div class="ms-info"><h4>' + escapeHtml(m.name) + '</h4><p>' + sub + '</p></div>';
-    row.appendChild(card);
-  });
 }
 
 function renderStampGrid() {
@@ -1233,39 +1311,31 @@ function renderStampGrid() {
   dotsRow.innerHTML = dotsHtml;
 }
 
-function renderRewardQRCards() {
+function renderRewardList() {
   var wrap = document.getElementById('p-reward-cards');
   wrap.innerHTML = '';
-  activeProfile.milestones.forEach(function(m, idx) {
-    var cardId = 'qr-reward-' + idx, svgId = 'qr-reward-svg-' + idx;
-    var card = document.createElement('div');
-    var cls = m.redeemed ? 'redeemed-qr' : (m.eligible ? 'active-qr' : 'locked');
-    card.className = 'qr-card ' + cls;
-    card.id = cardId;
-    var subHtml = m.redeemed
-      ? '<span class="redeemed-tag"><i class="ti ti-check" style="font-size:10px;"></i> Redeemed</span>'
-      : (m.eligible ? 'Show to facilitator' : (m.position + ' stamps needed'));
-    card.innerHTML =
-      '<div class="qr-box"><svg width="60" height="60" viewBox="0 0 60 60" id="' + svgId + '"></svg></div>' +
-      '<div class="qr-lbl">' + escapeHtml(m.name) + '</div>' +
-      '<div class="qr-sub">' + subHtml + '</div>';
-    wrap.appendChild(card);
-    if (m.eligible && !m.redeemed) drawSVGQR(svgId, m.position * 7 + idx * 3 + 1);
-  });
-}
-function drawSVGQR(svgId, seed) {
-  var svg = document.getElementById(svgId); if (!svg) return;
-  svg.innerHTML = '';
-  var G=7, CS=8, PAD=2, pat=[];
-  for (var r=0;r<G;r++){pat.push([]);for(var c=0;c<G;c++)pat[r].push(((seed*31+r*17+c*7+r*c*seed)%3)===0?1:0);}
-  [[0,0],[4,0],[0,4]].forEach(function(p){for(var rr=0;rr<3;rr++)for(var cc=0;cc<3;cc++)pat[p[0]+rr][p[1]+cc]=(rr===1&&cc===1)?0:1;});
-  for(var r2=0;r2<G;r2++)for(var c2=0;c2<G;c2++){
-    if(!pat[r2][c2])continue;
-    var rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
-    rect.setAttribute('x',String(PAD+c2*CS));rect.setAttribute('y',String(PAD+r2*CS));
-    rect.setAttribute('width',String(CS-1));rect.setAttribute('height',String(CS-1));
-    rect.setAttribute('fill','white');svg.appendChild(rect);
+  if (!activeProfile.milestones.length) {
+    wrap.innerHTML = '<div class="reward-list-empty">No rewards configured for this track yet.</div>';
+    return;
   }
+  activeProfile.milestones.forEach(function(m) {
+    var cls = m.redeemed ? 'redeemed' : (m.eligible ? 'eligible' : 'locked');
+    var statusHtml = m.redeemed
+      ? '<span class="reward-status redeemed"><i class="ti ti-check"></i> Redeemed</span>'
+      : (m.eligible
+          ? '<span class="reward-status eligible"><i class="ti ti-sparkles"></i> Show to facilitator</span>'
+          : '<span class="reward-status locked">' + m.position + ' stamps needed</span>');
+    var item = document.createElement('div');
+    item.className = 'reward-list-item ' + cls;
+    item.innerHTML =
+      '<div class="reward-list-icon"><i class="ti ti-gift"></i></div>' +
+      '<div class="reward-list-body">' +
+        '<div class="reward-list-name">' + escapeHtml(m.name) + '</div>' +
+        '<div class="reward-list-sub">Unlocks at ' + m.position + ' stamps</div>' +
+      '</div>' +
+      statusHtml;
+    wrap.appendChild(item);
+  });
 }
 function renderMilestoneMessages() {
   var wrap = document.getElementById('p-milestone-msgs');
@@ -1282,7 +1352,16 @@ function renderMilestoneMessages() {
 function renderSessions() {
   var p = activeProfile, grid = document.getElementById('p-sessions');
   grid.innerHTML = '';
-  activeSessions.forEach(function(s) {
+
+  var total = activeSessions.length;
+  var totalPages = Math.max(1, Math.ceil(total / SESSIONS_PER_PAGE));
+  if (participantSessionPage >= totalPages) participantSessionPage = totalPages - 1;
+  if (participantSessionPage < 0) participantSessionPage = 0;
+
+  var start = participantSessionPage * SESSIONS_PER_PAGE;
+  var pageSessions = activeSessions.slice(start, start + SESSIONS_PER_PAGE);
+
+  pageSessions.forEach(function(s) {
     var claimed = p.claimedSessions.indexOf(s.id) !== -1;
     var status  = claimed ? 'col' : (s.qrActive || s.codeActive ? 'avl' : 'upc');
     var lbl     = claimed ? 'Collected' : ((s.qrActive || s.codeActive) ? 'Check-In Open' : 'Upcoming');
@@ -1306,6 +1385,24 @@ function renderSessions() {
       '</div>';
     grid.appendChild(card);
   });
+
+  if (!pageSessions.length) {
+    grid.innerHTML = '<div class="empty-state"><i class="ti ti-calendar-off"></i><p>No sessions yet.</p></div>';
+  }
+
+  var pagWrap = document.getElementById('p-sessions-pagination');
+  if (pagWrap) pagWrap.style.display = total > SESSIONS_PER_PAGE ? 'flex' : 'none';
+  var prevBtn = document.getElementById('p-sess-prev');
+  var nextBtn = document.getElementById('p-sess-next');
+  if (prevBtn) prevBtn.disabled = participantSessionPage <= 0;
+  if (nextBtn) nextBtn.disabled = participantSessionPage >= totalPages - 1;
+  var indicator = document.getElementById('p-sess-page-indicator');
+  if (indicator) indicator.textContent = 'Page ' + (participantSessionPage + 1) + ' of ' + totalPages;
+}
+
+function changeSessionPage(delta) {
+  participantSessionPage += delta;
+  renderSessions();
 }
 
 // ── QR Scanner ──
@@ -1475,6 +1572,150 @@ function maybeAddManageButton() {
   }
 }
 
+// ── Preview Participant View (admin-only, read-only) ──
+// Renders the participant screen markup inside a modal, populated with the
+// current admin's own profile/data for this track, with all interactions disabled.
+async function openPreviewParticipantView() {
+  if (!activeTrack) return;
+  var wrap = document.getElementById('preview-inert-wrap');
+  wrap.innerHTML = '<div class="empty-state"><i class="ti ti-loader-2"></i><p>Loading preview…</p></div>';
+  document.getElementById('preview-overlay').classList.add('open');
+  try {
+    // Pull a participant-shaped view of this track for the admin's own account,
+    // so the preview reflects real (if minimal) data rather than empty placeholders.
+    var data = await apiRequest('getTrackForParticipant', { trackId: activeTrack.id });
+    var previewTrack    = normalizeTrackSummary(Object.assign({}, data.track, { role: 'participant' }));
+    var previewProfile  = data.profile;
+    var previewSessions = (data.sessions||[]).map(normalizeSession);
+    renderParticipantPreview(wrap, previewTrack, previewProfile, previewSessions);
+  } catch(e) {
+    wrap.innerHTML = '<div class="empty-state"><i class="ti ti-alert-triangle"></i>' +
+      '<p>Could not load a live preview (' + escapeHtml(e.message) + ').<br>' +
+      'This usually means your admin account isn\'t also enrolled as a participant in this track.</p></div>';
+  }
+}
+function closePreviewParticipantView() {
+  document.getElementById('preview-overlay').classList.remove('open');
+  document.getElementById('preview-inert-wrap').innerHTML = '';
+}
+function renderParticipantPreview(wrap, t, p, sessions) {
+  // Clone the live participant screen's markup so styling stays in sync,
+  // then populate the clone directly (scoped queries, not global IDs) and
+  // disable all interaction via pointer-events on the wrapper.
+  var source = document.getElementById('screen-participant');
+  var clone = source.cloneNode(true);
+  clone.removeAttribute('id');
+  clone.classList.add('active');
+  // Strip every id from the clone to avoid colliding with the live screen's IDs.
+  clone.querySelectorAll('[id]').forEach(function(el){ el.removeAttribute('id'); });
+  wrap.innerHTML = '';
+  wrap.appendChild(clone);
+
+  var u = currentUser;
+  clone.querySelector('.p-header-title').textContent = t.name;
+  clone.querySelector('.p-header-welcome').textContent = 'Hello, ' + (u.name.split(' ')[0]||u.name) + ' 👋';
+  clone.querySelector('.p-header-sub').textContent = u.facility + ' · ' + u.email;
+
+  // Stamp grid + progress
+  var milestonePositions = {};
+  p.milestones.forEach(function(m){ milestonePositions[m.position] = true; });
+  var total = Number(p.template.totalStamps || 0) || (p.milestones.length ? p.milestones[p.milestones.length-1].position : 10);
+  var grid = clone.querySelector('.sgrid');
+  grid.innerHTML = '';
+  for (var i = 1; i <= total; i++) {
+    var filled = i <= p.stamps;
+    var div = document.createElement('div');
+    var mc = milestonePositions[i] ? ' milestone' : '';
+    div.className = 'stamp ' + (filled ? 'col' : 'unc') + mc;
+    div.innerHTML = '<span class="snum">' + i + '</span>';
+    grid.appendChild(div);
+  }
+  clone.querySelector('.ptxt strong').textContent = p.stamps;
+  clone.querySelector('.ptxt span').textContent = total;
+  clone.querySelector('.tfill').style.width = Math.min(100, (p.stamps/total)*100) + '%';
+  clone.querySelector('.track-lbl').innerHTML = '<span class="tl">Start</span>' +
+    p.milestones.map(function(m){ return '<span class="tl">' + m.position + ' pts</span>'; }).join('');
+  var dotsHtml = '<div class="dot r"></div>';
+  p.milestones.forEach(function(m){ dotsHtml += '<div class="dot' + (p.stamps >= m.position ? ' rg' : '') + '"></div>'; });
+  clone.querySelector('.tdots').innerHTML = dotsHtml;
+
+  // Reward list (text-centric)
+  var rewardWrap = clone.querySelector('.reward-list');
+  rewardWrap.innerHTML = '';
+  if (!p.milestones.length) {
+    rewardWrap.innerHTML = '<div class="reward-list-empty">No rewards configured for this track yet.</div>';
+  } else {
+    p.milestones.forEach(function(m) {
+      var cls = m.redeemed ? 'redeemed' : (m.eligible ? 'eligible' : 'locked');
+      var statusHtml = m.redeemed
+        ? '<span class="reward-status redeemed"><i class="ti ti-check"></i> Redeemed</span>'
+        : (m.eligible
+            ? '<span class="reward-status eligible"><i class="ti ti-sparkles"></i> Show to facilitator</span>'
+            : '<span class="reward-status locked">' + m.position + ' stamps needed</span>');
+      var item = document.createElement('div');
+      item.className = 'reward-list-item ' + cls;
+      item.innerHTML =
+        '<div class="reward-list-icon"><i class="ti ti-gift"></i></div>' +
+        '<div class="reward-list-body">' +
+          '<div class="reward-list-name">' + escapeHtml(m.name) + '</div>' +
+          '<div class="reward-list-sub">Unlocks at ' + m.position + ' stamps</div>' +
+        '</div>' + statusHtml;
+      rewardWrap.appendChild(item);
+    });
+  }
+
+  // Milestone unlock messages
+  var msgWrap = clone.querySelector('.p-actions > div');
+  msgWrap.innerHTML = '';
+  p.milestones.forEach(function(m) {
+    if (m.eligible && !m.redeemed) {
+      var d = document.createElement('div');
+      d.className = 'smsg s-on';
+      d.innerHTML = '<i class="ti ti-gift"></i><span>' + escapeHtml(m.name) + ' unlocked! Show your QR to the facilitator.</span>';
+      msgWrap.appendChild(d);
+    }
+  });
+
+  // Sessions (first page only — preview is a static snapshot)
+  var sessGrid = clone.querySelector('.sess-grid');
+  sessGrid.innerHTML = '';
+  var pageSessions = sessions.slice(0, SESSIONS_PER_PAGE);
+  if (!pageSessions.length) {
+    sessGrid.innerHTML = '<div class="empty-state"><i class="ti ti-calendar-off"></i><p>No sessions yet.</p></div>';
+  }
+  pageSessions.forEach(function(s) {
+    var claimed = p.claimedSessions.indexOf(s.id) !== -1;
+    var status = claimed ? 'col' : (s.qrActive || s.codeActive ? 'avl' : 'upc');
+    var lbl = claimed ? 'Collected' : ((s.qrActive || s.codeActive) ? 'Check-In Open' : 'Upcoming');
+    var icon = claimed ? 'ti-check' : ((s.qrActive || s.codeActive) ? 'ti-qrcode-scan' : 'ti-clock');
+    var rawTs = p.scanTimestamps && p.scanTimestamps[s.id] ? p.scanTimestamps[s.id] : '';
+    var dateOnly = rawTs ? formatDateOnly(rawTs) : '';
+    var tsHtml = dateOnly ? '<div class="scan-ts"><i class="ti ti-calendar"></i>Stamped: ' + dateOnly + '</div>' : '';
+    var metaBits = [s.type];
+    if (s.location) metaBits.push(s.location);
+    if (s.time) metaBits.push(s.time);
+    var card = document.createElement('div');
+    card.className = 'sess-card';
+    card.innerHTML =
+      '<div class="sess-ic ' + status + '"><i class="ti ' + s.icon + '" style="font-size:17px;"></i></div>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div class="stop"><span class="sname">' + escapeHtml(s.name) + '</span><span class="pb">1 pt</span></div>' +
+        '<div class="stype">' + escapeHtml(metaBits.join(' · ')) + '</div>' +
+        '<div class="sdesc">' + escapeHtml(s.desc) + '</div>' +
+        '<span class="spill ' + status + '"><i class="ti ' + icon + '" style="font-size:10px;"></i> ' + lbl + '</span>' + tsHtml +
+      '</div>';
+    sessGrid.appendChild(card);
+  });
+  var pag = clone.querySelector('.sess-pagination');
+  if (pag) pag.style.display = sessions.length > SESSIONS_PER_PAGE ? 'flex' : 'none';
+
+  var totalStamps = total;
+  var scanBtn = clone.querySelector('.btn-scan');
+  var checkinBtn = clone.querySelector('.btn-checkin');
+  if (scanBtn) scanBtn.disabled = p.stamps >= totalStamps;
+  if (checkinBtn) checkinBtn.disabled = p.stamps >= totalStamps;
+}
+
 function setAdminTab(tab) {
   ['sessions','participants','rewards'].forEach(function(t) {
     document.getElementById('atab-'+t).classList.toggle('active', t===tab);
@@ -1483,7 +1724,30 @@ function setAdminTab(tab) {
   if (tab === 'rewards') renderRewardTemplateEditor();
 }
 
-function renderAdmin() { renderQRManagement(); renderAdminParticipants(); }
+function renderAdmin() { renderAttendanceSummary(); renderQRManagement(); renderAdminParticipants(); }
+
+function renderAttendanceSummary() {
+  var wrap = document.getElementById('attendance-summary-list');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  if (!activeSessions.length) {
+    wrap.innerHTML = '<div class="attendance-empty">No sessions yet. Add a session to start tracking attendance.</div>';
+    return;
+  }
+  activeSessions.forEach(function(s) {
+    var claimCount = adminParticipants.filter(function(u){ return u.claimedSessions.indexOf(s.id)!==-1; }).length;
+    var row = document.createElement('div');
+    row.className = 'attendance-row';
+    row.innerHTML =
+      '<div class="attendance-row-icon"><i class="ti ' + s.icon + '"></i></div>' +
+      '<div class="attendance-row-body">' +
+        '<div class="attendance-row-name">' + escapeHtml(s.name) + '</div>' +
+        '<div class="attendance-row-meta">' + escapeHtml(s.type) + '</div>' +
+      '</div>' +
+      '<div class="attendance-row-count"><i class="ti ti-users" style="font-size:12px;"></i>' + claimCount + '</div>';
+    wrap.appendChild(row);
+  });
+}
 
 async function refreshAdminData() {
   try {
