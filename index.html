@@ -295,7 +295,7 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
 .attendance-row-count{font-size:13px;font-weight:700;color:var(--terra);display:flex;align-items:center;gap:5px;flex-shrink:0;background:#fff;border-radius:99px;padding:4px 11px;border:1px solid var(--terra-l);}
 .attendance-empty{text-align:center;padding:18px 10px;color:var(--ts);font-size:12px;}
 /* ── Interactive attendance bar chart ── */
-.attendance-chart-wrap{position:relative;}
+.attendance-chart-wrap{position:relative;width:60%;max-width:60%;margin:0 auto;}
 .attendance-chart{width:100%;height:auto;display:block;overflow:visible;}
 .attendance-line-path{fill:none;stroke:var(--terra-l);stroke-width:2.5;transition:stroke .15s;}
 .attendance-area-path{fill:var(--terra-p);opacity:.55;transition:opacity .15s;}
@@ -303,8 +303,8 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
 .attendance-point-group{cursor:pointer;}
 .attendance-point-dot{fill:#fff;stroke:var(--terra-l);stroke-width:2.5;transition:stroke .15s,r .15s;}
 .attendance-point-group:hover .attendance-point-dot,.attendance-point-group.active .attendance-point-dot{stroke:var(--terra);r:6;}
-.attendance-axis-label{font-size:9px;fill:var(--ts);font-family:var(--font);text-anchor:middle;}
-.attendance-value-label{font-size:10px;fill:var(--tm);font-weight:700;font-family:var(--font);text-anchor:middle;}
+.attendance-axis-label{font-size:6.5px;fill:var(--ts);font-family:var(--font);text-anchor:middle;}
+.attendance-value-label{font-size:7.5px;fill:var(--tm);font-weight:700;font-family:var(--font);text-anchor:middle;}
 .attendance-tooltip{position:absolute;pointer-events:none;background:var(--tm);color:#fff;font-size:11px;font-weight:600;padding:7px 11px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-100%);opacity:0;transition:opacity .12s;z-index:5;box-shadow:var(--shadow-lg);}
 .attendance-tooltip.visible{opacity:1;}
 .attendance-tooltip .tt-name{font-weight:700;}
@@ -1821,8 +1821,13 @@ function renderAttendanceSummary() {
     ' L' + points[points.length - 1].x + ',' + (padTop + plotH) +
     ' L' + points[0].x + ',' + (padTop + plotH) + ' Z';
 
+  // Truncate axis labels based on how much horizontal room each session actually has,
+  // so labels never overlap regardless of how many sessions are plotted.
+  var availablePerLabel = n > 1 ? step : plotW;
+  var maxChars = Math.max(3, Math.floor(availablePerLabel / 4.2));
+
   var pointsSvg = points.map(function(p, i) {
-    var label = p.c.name.length > 10 ? p.c.name.slice(0, 9) + '…' : p.c.name;
+    var label = p.c.name.length > maxChars ? p.c.name.slice(0, Math.max(1, maxChars - 1)) + '…' : p.c.name;
     return '<g class="attendance-point-group" data-idx="' + i + '" data-name="' + escapeHtml(p.c.name) + '" data-count="' + p.c.count + '">' +
       '<text class="attendance-value-label" x="' + p.x + '" y="' + (p.y - 10) + '">' + p.c.count + '</text>' +
       '<circle class="attendance-point-dot" cx="' + p.x + '" cy="' + p.y + '" r="4.5"></circle>' +
