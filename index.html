@@ -633,6 +633,7 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
       </div>
 
       <div class="danger-zone">
+        <h4>Danger Zone</h4>
         <button class="btn-danger" onclick="confirmDeleteTrack()">
           <i class="ti ti-trash"></i> Delete This Track
         </button>
@@ -714,8 +715,8 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
     </div>
     <div class="admin-tabs">
       <button class="admin-tab active" id="atab-sessions" onclick="setAdminTab('sessions')">Sessions</button>
-      <button class="admin-tab" id="atab-participants" onclick="setAdminTab('participants')">Participants</button>
       <button class="admin-tab" id="atab-rewards" onclick="setAdminTab('rewards')">Rewards</button>
+      <button class="admin-tab" id="atab-participants" onclick="setAdminTab('participants')">Participants</button>
     </div>
   </div>
   <div class="p-body">
@@ -812,6 +813,25 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
         </div>
       </div>
       <div class="section mt-16">
+        <div class="slabel">Track Admins</div>
+        <div class="card">
+          <p style="font-size:12px;color:var(--ts);margin-bottom:14px;line-height:1.6;">
+            Add other people as admins of this track so they can also manage sessions and rewards.
+          </p>
+          <div id="sess-admin-list" class="admin-list"></div>
+          <div id="sess-add-admin-error" class="error-msg"></div>
+          <div id="sess-add-admin-success" class="success-msg"></div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Add Admin by Email</label>
+            <div class="join-row">
+              <input class="form-input" id="sess-new-admin-email" type="email" placeholder="colleague@company.com">
+              <button class="btn-join" id="btn-sess-add-admin" onclick="submitAddTrackAdminFromSessions()">Add</button>
+            </div>
+            <p class="form-hint">They must already have a Stamp Journey account.</p>
+          </div>
+        </div>
+      </div>
+      <div class="section mt-16">
         <div class="slabel">Data History</div>
         <div class="card">
           <p style="font-size:12px;color:var(--ts);margin-bottom:14px;line-height:1.6;">
@@ -858,7 +878,8 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
           </p>
           <div class="form-group">
             <label class="form-label">Total Stamps in Journey</label>
-            <input class="form-input" id="tpl-total-stamps" type="number" min="1" value="10">
+            <input class="form-input" id="tpl-total-stamps" type="number" min="1" max="200" value="10" oninput="onTotalStampsInput()">
+            <p class="form-hint" id="tpl-total-stamps-hint">Participants will see 10 stamp slots on their card.</p>
           </div>
           <div class="slabel" style="margin-top:6px;">Milestones</div>
           <div class="template-editor" id="tpl-milestones"></div>
@@ -1269,8 +1290,17 @@ function closeManageTrackModal() {
   document.getElementById('manage-track-overlay').classList.remove('open');
 }
 function renderManageTrackAdmins() {
-  var wrap = document.getElementById('mt-admin-list');
+  renderAdminListInto('mt-admin-list');
+  renderAdminListInto('sess-admin-list');
+}
+function renderAdminListInto(containerId) {
+  var wrap = document.getElementById(containerId);
+  if (!wrap) return;
   wrap.innerHTML = '';
+  if (!adminAdmins.length) {
+    wrap.innerHTML = '<div class="empty-state" style="padding:18px 10px;"><p>No admins listed yet.</p></div>';
+    return;
+  }
   adminAdmins.forEach(function(a) {
     var row = document.createElement('div');
     row.className = 'admin-list-row';
@@ -1295,6 +1325,21 @@ async function submitAddTrackAdmin() {
     renderManageTrackAdmins();
   } catch(e) { showErr('manage-track-error', e.message); }
   finally { restore('btn-add-admin'); }
+}
+async function submitAddTrackAdminFromSessions() {
+  busy('btn-sess-add-admin','Adding…');
+  try {
+    var email = document.getElementById('sess-new-admin-email').value.trim().toLowerCase();
+    if (!email || !email.includes('@')) { showErr('sess-add-admin-error','Enter a valid email address.'); return; }
+    var data = await apiRequest('addTrackAdmin', { trackId: activeTrack.id, adminEmail: email });
+    adminAdmins = data.admins || [];
+    document.getElementById('sess-new-admin-email').value = '';
+    var ok = document.getElementById('sess-add-admin-success');
+    ok.textContent = email + ' is now an admin of this track.'; ok.style.display = 'block';
+    setTimeout(function(){ ok.style.display = 'none'; }, 4000);
+    renderManageTrackAdmins();
+  } catch(e) { showErr('sess-add-admin-error', e.message); }
+  finally { restore('btn-sess-add-admin'); }
 }
 function copyManageAccessCode() {
   navigator.clipboard.writeText(activeTrack.accessCode).then(function(){ alert('Access code copied: ' + activeTrack.accessCode); });
@@ -1786,7 +1831,7 @@ function setAdminTab(tab) {
   if (tab === 'rewards') renderRewardTemplateEditor();
 }
 
-function renderAdmin() { renderAttendanceSummary(); renderQRManagement(); renderHistoryPicker(); renderAdminParticipants(); }
+function renderAdmin() { renderAttendanceSummary(); renderQRManagement(); renderHistoryPicker(); renderAdminParticipants(); renderManageTrackAdmins(); }
 
 function renderHistoryPicker() {
   var picker = document.getElementById('history-session-picker');
@@ -2410,7 +2455,15 @@ var templateEditorState = { totalStamps: 10, milestones: [] };
 function renderRewardTemplateEditor() {
   templateEditorState = JSON.parse(JSON.stringify(activeTrack.template));
   document.getElementById('tpl-total-stamps').value = templateEditorState.totalStamps || 10;
+  onTotalStampsInput();
   renderMilestoneRows();
+}
+function onTotalStampsInput() {
+  var hint = document.getElementById('tpl-total-stamps-hint');
+  if (!hint) return;
+  var raw = Number(document.getElementById('tpl-total-stamps').value);
+  var n = Math.max(1, raw || 0);
+  hint.textContent = 'Participants will see ' + n + ' stamp slot' + (n === 1 ? '' : 's') + ' on their card.';
 }
 function renderMilestoneRows() {
   var wrap = document.getElementById('tpl-milestones');
@@ -2433,9 +2486,11 @@ function updateMilestoneField(idx, field, value) {
   templateEditorState.milestones[idx][field] = value;
 }
 function addMilestoneRow() {
+  var totalStamps = Math.max(1, Number(document.getElementById('tpl-total-stamps').value)||10);
   var nextPos = (templateEditorState.milestones.length
     ? Math.max.apply(null, templateEditorState.milestones.map(function(m){return Number(m.position)||0;})) + 5
     : 5);
+  nextPos = Math.min(nextPos, totalStamps);
   templateEditorState.milestones.push({ position: nextPos, name: 'New Reward', icon: 'ti-gift' });
   renderMilestoneRows();
 }
@@ -2444,9 +2499,15 @@ function removeMilestoneRow(idx) {
   renderMilestoneRows();
 }
 async function saveRewardTemplate() {
+  var totalStamps = Math.max(1, Number(document.getElementById('tpl-total-stamps').value)||10);
+  var overLimit = templateEditorState.milestones.filter(function(m){ return Number(m.position) > totalStamps; });
+  if (overLimit.length) {
+    var names = overLimit.map(function(m){ return m.name + ' (' + m.position + ' stamps)'; }).join(', ');
+    alert('These milestones unlock past the new total of ' + totalStamps + ' stamps: ' + names + '.\n\nLower their position or raise the total stamps before saving.');
+    return;
+  }
   busy('btn-save-template','Saving…');
   try {
-    var totalStamps = Math.max(1, Number(document.getElementById('tpl-total-stamps').value)||10);
     var payloadTemplate = { totalStamps: totalStamps, milestones: templateEditorState.milestones };
     var data = await apiRequest('updateRewardTemplate', { trackId: activeTrack.id, template: payloadTemplate });
     activeTrack.template = data.track.template;
