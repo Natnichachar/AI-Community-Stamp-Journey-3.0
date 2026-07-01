@@ -280,7 +280,7 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
 .session-picker-row{margin-bottom:14px;}
 .session-picker-row .form-label{margin-bottom:6px;}
 .track-settings-section{margin-bottom:4px;}
-.section-badge{display:inline-block;background:var(--terra-p);border:1.5px solid var(--terra-l);border-radius:99px;padding:4px 13px;font-size:13px;font-weight:700;color:#7A2E0A;letter-spacing:.4px;margin-bottom:12px;}
+.section-badge{display:inline-block;background:var(--terra-p);border:1.5px solid var(--terra-l);border-radius:99px;padding:4px 13px;font-size:11px;font-weight:700;color:#7A2E0A;letter-spacing:.4px;margin-bottom:12px;}
 /* ── Collapsible accordion sections (Attendance Summary, Manage Sessions) ── */
 .collapsible-section{background:#fff;border-radius:var(--r-lg);border:.5px solid #E8DDD4;box-shadow:var(--shadow);overflow:hidden;}
 .collapsible-summary{list-style:none;cursor:pointer;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--tm);}
@@ -642,7 +642,7 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
       <div id="track-settings-error" class="error-msg"></div>
       <div id="track-settings-success" class="success-msg"></div>
 
-      <span class="section-badge">Track Setting</span>
+      <div class="slabel" style="margin-top:18px;">Track Settings</div>
       <div class="form-group">
         <label class="form-label">Track Name</label>
         <div class="join-row">
@@ -650,7 +650,7 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
           <button class="btn-join" id="btn-ts-save-name" onclick="saveTrackName()">Save</button>
         </div>
       </div>
-      
+      <span class="section-badge">Track Setting</span>
       <div class="form-group">
         <label class="form-label">Number of Sessions <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--ts);">(= total stamps)</span></label>
         <div class="join-row">
@@ -852,19 +852,22 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
         </div>
       </div>
       <div class="section mt-16">
-        <div class="slabel">Reward Template</div>
+        <div class="slabel">Track Admins</div>
         <div class="card">
           <p style="font-size:12px;color:var(--ts);margin-bottom:14px;line-height:1.6;">
-            Define which milestones along the way unlock a reward.
+            Add other people as admins of this track so they can also manage sessions and rewards.
           </p>
-          <div class="slabel" style="margin-top:0;">Milestones</div>
-          <div class="template-editor" id="tpl-milestones"></div>
-          <button class="btn-add-session" style="margin-top:10px;margin-bottom:0;" onclick="addMilestoneRow()">
-            <i class="ti ti-plus"></i> Add Milestone
-          </button>
-          <button class="btn-primary" style="margin-top:14px;" id="btn-save-template" onclick="saveRewardTemplate()">
-            <i class="ti ti-check"></i> Save Reward Template
-          </button>
+          <div id="sess-admin-list" class="admin-list"></div>
+          <div id="sess-add-admin-error" class="error-msg"></div>
+          <div id="sess-add-admin-success" class="success-msg"></div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Add Admin by Email</label>
+            <div class="join-row">
+              <input class="form-input" id="sess-new-admin-email" type="email" placeholder="colleague@company.com">
+              <button class="btn-join" id="btn-sess-add-admin" onclick="submitAddTrackAdminFromSessions()">Add</button>
+            </div>
+            <p class="form-hint">They must already have a Stamp Journey account.</p>
+          </div>
         </div>
       </div>
       <div class="section mt-16">
@@ -881,6 +884,22 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
           </div>
           <button class="btn-download-history" id="btn-download-history" onclick="downloadSelectedHistory()">
             <i class="ti ti-table-export"></i> Download scan history
+          </button>
+        </div>
+      </div>
+      <div class="section mt-16">
+        <div class="slabel">Reward Template</div>
+        <div class="card">
+          <p style="font-size:12px;color:var(--ts);margin-bottom:14px;line-height:1.6;">
+            Define which milestones along the way unlock a reward.
+          </p>
+          <div class="slabel" style="margin-top:0;">Milestones</div>
+          <div class="template-editor" id="tpl-milestones"></div>
+          <button class="btn-add-session" style="margin-top:10px;margin-bottom:0;" onclick="addMilestoneRow()">
+            <i class="ti ti-plus"></i> Add Milestone
+          </button>
+          <button class="btn-primary" style="margin-top:14px;" id="btn-save-template" onclick="saveRewardTemplate()">
+            <i class="ti ti-check"></i> Save Reward Template
           </button>
         </div>
       </div>
@@ -1002,6 +1021,91 @@ var participantSessionPage = 0;
 var SESSIONS_PER_PAGE = 5;
 var selectedManageSessionId = '';
 
+// ── Polling / callback simulation ──
+// GAS does not support WebSockets or SSE, so we use smart interval polling.
+// Two modes:
+//   POLL_INTERVAL_FAST — 10 s, used in admin view while a QR or code is active
+//   POLL_INTERVAL_SLOW — 30 s, used otherwise (admin idle, participant view)
+// Polling pauses automatically when the browser tab is hidden and resumes on focus.
+var POLL_INTERVAL_FAST = 10000;   // 10 seconds — active check-in window
+var POLL_INTERVAL_SLOW = 30000;   // 30 seconds — idle / participant
+var _pollTimer    = null;   // the current setInterval handle
+var _pollContext  = null;   // 'admin' | 'participant' | null
+var _pollPaused   = false;  // true while tab is hidden
+
+function _currentPollInterval() {
+  // Use the fast interval when the admin has an active QR or check-in code
+  // so attendees see the code appear promptly on their own devices.
+  if (_pollContext === 'admin') {
+    var anyActive = activeSessions.some(function(s) {
+      return (s.qrActive && s.qrExpiresAt > Date.now()) ||
+             (s.codeActive && s.codeExpiresAt > Date.now());
+    });
+    return anyActive ? POLL_INTERVAL_FAST : POLL_INTERVAL_SLOW;
+  }
+  return POLL_INTERVAL_SLOW;
+}
+
+function _runPollTick() {
+  // Skip if a modal is open (would confuse the admin mid-edit)
+  // or if a QR scanner is running (camera in use).
+  var manageOpen = document.getElementById('manage-track-overlay').classList.contains('open');
+  var scannerOpen = document.getElementById('scanner-overlay').classList.contains('open');
+  var checkinOpen = document.getElementById('checkin-overlay').classList.contains('open');
+  if (manageOpen || scannerOpen || checkinOpen) return;
+
+  if (_pollContext === 'admin' && activeTrack) {
+    refreshAdminData().catch(function(){});
+  } else if (_pollContext === 'participant' && activeTrack) {
+    refreshParticipantData().catch(function(){});
+  }
+}
+
+function startPolling(context) {
+  stopPolling();
+  _pollContext = context;
+  _pollPaused  = false;
+  // Schedule with the right interval; re-evaluate on each tick so it can
+  // switch from slow → fast the moment an admin activates a QR/code.
+  (function schedule() {
+    _pollTimer = setTimeout(function() {
+      if (!_pollPaused && _pollContext) {
+        _runPollTick();
+      }
+      if (_pollContext) schedule(); // reschedule indefinitely
+    }, _currentPollInterval());
+  })();
+}
+
+function stopPolling() {
+  if (_pollTimer) { clearTimeout(_pollTimer); _pollTimer = null; }
+  _pollContext = null;
+  _pollPaused  = false;
+}
+
+// Pause polling while the tab is hidden, resume when it comes back.
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden) {
+    _pollPaused = true;
+  } else {
+    _pollPaused = false;
+    // Immediately sync on return so the user doesn't see stale data.
+    if (_pollContext && !document.getElementById('manage-track-overlay').classList.contains('open')) {
+      _runPollTick();
+    }
+  }
+});
+
+async function refreshParticipantData() {
+  if (!activeTrack) return;
+  try {
+    var data = await apiRequest('getTrackForParticipant', { trackId: activeTrack.id });
+    activeProfile  = data.profile;
+    activeSessions = (data.sessions||[]).map(normalizeSession);
+    renderParticipant();
+  } catch(e) { console.error('refreshParticipantData:', e); }
+}
+
 // ── API ──
 function apiRequest(action, payload) {
   if (!payload) payload = {};
@@ -1029,6 +1133,89 @@ function restore(btnId) {
   var b = document.getElementById(btnId); if (!b) return;
   if (b.dataset.orig) b.innerHTML = b.dataset.orig; b.disabled = false;
 }
+
+// ── Polling engine ──
+// Returns true if any session currently has an active QR or check-in code
+// (used to decide whether to poll fast or slow in admin view).
+function _hasActiveCodes() {
+  var now = Date.now();
+  return activeSessions.some(function(s) {
+    return (s.qrActive && s.qrExpiresAt > now) || (s.codeActive && s.codeExpiresAt > now);
+  });
+}
+
+// Choose the right interval given the current context and state.
+function _pollInterval() {
+  if (_pollContext === 'admin' && _hasActiveCodes()) return POLL_INTERVAL_FAST;
+  return POLL_INTERVAL_SLOW;
+}
+
+// Single poll tick — fetches fresh data and reschedules itself at the
+// correct interval (fast ↔ slow can change each tick as codes expire/activate).
+function _pollTick() {
+  if (_pollPaused || !_pollContext) return;
+  if (_pollContext === 'admin' && activeTrack) {
+    refreshAdminData();       // silent — no spinner, updates UI in-place
+  } else if (_pollContext === 'participant' && activeTrack) {
+    _refreshParticipantSilent();
+  }
+  // Reschedule at the potentially-updated interval
+  _schedulePoll();
+}
+
+// Clear any existing timer and set a new one.
+function _schedulePoll() {
+  if (_pollTimer) { clearTimeout(_pollTimer); _pollTimer = null; }
+  if (!_pollContext) return;
+  _pollTimer = setTimeout(_pollTick, _pollInterval());
+}
+
+// Call when entering admin or participant view.
+function startPolling(context) {
+  stopPolling();          // clear any previous context first
+  _pollContext = context;
+  _pollPaused  = false;
+  _schedulePoll();
+}
+
+// Call on logout, goToDashboard, or any "leave track" action.
+function stopPolling() {
+  if (_pollTimer) { clearTimeout(_pollTimer); _pollTimer = null; }
+  _pollContext = null;
+}
+
+// Restart the schedule from now — call this after an admin activates /
+// deactivates a QR or code, so the interval immediately switches.
+function resetPollTimer() {
+  if (_pollContext) _schedulePoll();
+}
+
+// Silent participant refresh: fetches fresh profile + sessions without
+// touching the loading state or resetting the session page.
+async function _refreshParticipantSilent() {
+  if (!activeTrack) return;
+  try {
+    var data = await apiRequest('getTrackForParticipant', { trackId: activeTrack.id });
+    activeProfile  = data.profile;
+    activeSessions = (data.sessions || []).map(normalizeSession);
+    syncTrackCardOnDashboard();
+    renderParticipant();   // re-renders in place, preserves scroll position
+  } catch(e) { /* silent — don't alert on background refresh failures */ }
+}
+
+// Pause / resume when the tab visibility changes.
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden) {
+    _pollPaused = true;
+    if (_pollTimer) { clearTimeout(_pollTimer); _pollTimer = null; }
+  } else {
+    _pollPaused = false;
+    if (_pollContext) {
+      // Immediately refresh on tab re-focus, then resume scheduled polling.
+      _pollTick();
+    }
+  }
+});
 
 // ── Normalise ──
 function normalizeUser(u) {
@@ -1158,6 +1345,7 @@ function finishAuth(data) {
 function logout() {
   localStorage.removeItem('stampJourneySession');
   clearLastView();
+  stopPolling();
   currentUser = null; myTracks = []; activeTrack = null; activeProfile = null; activeSessions = [];
   adminParticipants = []; adminAdmins = [];
   Object.values(countdownTimers).forEach(clearInterval); countdownTimers = {};
@@ -1243,6 +1431,7 @@ async function handleJoinTrack() {
 
 function goToDashboard() {
   Object.values(countdownTimers).forEach(clearInterval); countdownTimers = {};
+  stopPolling();
   clearLastView();
   loadDashboard();
   showScreen('dashboard');
@@ -1464,6 +1653,7 @@ async function openParticipantTrack(trackId) {
     renderParticipant();
     showScreen('participant');
     saveLastView({ screen: 'participant', trackId: trackId });
+    startPolling('participant');
   } catch(e) { alert('Could not open track: ' + e.message); }
 }
 
@@ -1757,6 +1947,7 @@ async function openAdminTrack(trackId) {
     showScreen('admin');
     maybeAddManageButton();
     saveLastView({ screen: 'admin', trackId: trackId });
+    startPolling('admin');
   } catch(e) { alert('Could not open track: ' + e.message); }
 }
 
@@ -2466,6 +2657,7 @@ async function activateQR(sessionId) {
       activeSessions[idx].qrToken = data.token;
     }
     renderSingleSessionManageCard(sessionId);
+    resetPollTimer();
   } catch(e) { alert('Error: '+e.message); }
   finally { restore(btnId); }
 }
@@ -2475,6 +2667,7 @@ async function deactivateQRCode(sessionId) {
     var idx = activeSessions.findIndex(function(s){ return s.id===sessionId; });
     if (idx !== -1) { activeSessions[idx].qrActive = false; activeSessions[idx].qrToken=''; activeSessions[idx].qrExpiresAt=0; }
     renderSingleSessionManageCard(sessionId);
+    resetPollTimer();
   } catch(e) { alert('Error: '+e.message); }
 }
 async function activateCheckInCode(sessionId) {
@@ -2491,6 +2684,7 @@ async function activateCheckInCode(sessionId) {
     }
     renderSingleSessionManageCard(sessionId);
     setCheckinMode(sessionId, 'code');
+    resetPollTimer();
   } catch(e) { alert('Error: '+e.message); }
   finally { restore(btnId); }
 }
@@ -2501,6 +2695,7 @@ async function deactivateCheckInCodeAdmin(sessionId) {
     if (idx !== -1) { activeSessions[idx].codeActive = false; activeSessions[idx].codeValue=''; activeSessions[idx].codeExpiresAt=0; }
     renderSingleSessionManageCard(sessionId);
     setCheckinMode(sessionId, 'code');
+    resetPollTimer();
   } catch(e) { alert('Error: '+e.message); }
 }
 
