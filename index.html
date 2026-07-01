@@ -1359,10 +1359,9 @@ async function bootUser() {
     var stillHasTrack = myTracks.some(function(t){ return t.id === last.trackId; });
     if (stillHasTrack) {
       await openTrack(last.trackId, last.screen === 'admin' ? 'admin' : 'participant');
-      // openParticipantTrack/openAdminTrack only call showScreen() on success (they alert()
-      // and swallow errors otherwise), so check whether navigation actually happened.
-      var landedScreen = document.querySelector('.screen.active');
-      if (landedScreen && landedScreen.id !== 'screen-auth') return;
+      var expectedScreen = 'screen-' + last.screen;
+      var landedEl = document.getElementById(expectedScreen);
+      if (landedEl && landedEl.classList.contains('active')) return;
     }
   }
   clearLastView();
@@ -1664,6 +1663,7 @@ function renderParticipant() {
   document.getElementById('p-facility').textContent = u.facility + ' · ' + u.email;
   renderStampGrid();
   renderRewardList();
+  renderMilestoneMessages();
   participantSessionPage = 0;
   renderSessions();
   var totalStamps = Number(p.template.totalStamps || 0) || (p.milestones.length ? p.milestones[p.milestones.length-1].position : 10);
@@ -1728,6 +1728,18 @@ function renderRewardList() {
       '</div>' +
       statusHtml;
     wrap.appendChild(item);
+  });
+}
+function renderMilestoneMessages() {
+  var wrap = document.getElementById('p-milestone-msgs');
+  wrap.innerHTML = '';
+  activeProfile.milestones.forEach(function(m) {
+    if (m.eligible && !m.redeemed) {
+      var div = document.createElement('div');
+      div.className = 'smsg s-on';
+      div.innerHTML = '<i class="ti ti-gift"></i><span>' + escapeHtml(m.name) + ' unlocked! Show your QR to the facilitator.</span>';
+      wrap.appendChild(div);
+    }
   });
 }
 function renderSessions() {
