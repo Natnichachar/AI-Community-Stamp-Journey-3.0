@@ -280,6 +280,7 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
 .session-picker-row{margin-bottom:14px;}
 .session-picker-row .form-label{margin-bottom:6px;}
 .track-settings-section{margin-bottom:4px;}
+.section-badge{display:inline-block;background:var(--terra-p);border:1.5px solid var(--terra-l);border-radius:99px;padding:4px 13px;font-size:11px;font-weight:700;color:#7A2E0A;letter-spacing:.4px;margin-bottom:12px;}
 /* ── Collapsible accordion sections (Attendance Summary, Manage Sessions) ── */
 .collapsible-section{background:#fff;border-radius:var(--r-lg);border:.5px solid #E8DDD4;box-shadow:var(--shadow);overflow:hidden;}
 .collapsible-summary{list-style:none;cursor:pointer;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--tm);}
@@ -649,6 +650,7 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
           <button class="btn-join" id="btn-ts-save-name" onclick="saveTrackName()">Save</button>
         </div>
       </div>
+      <span class="section-badge">Track Setting</span>
       <div class="form-group">
         <label class="form-label">Number of Sessions <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--ts);">(= total stamps)</span></label>
         <div class="join-row">
@@ -657,8 +659,10 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
         </div>
         <p class="form-hint" id="ts-session-count-hint"></p>
       </div>
+      <hr style="border:none;border-top:1px solid var(--gray-l);margin:4px 0 16px;">
 
-      <div class="slabel" style="margin-top:18px;">Track Admins</div>
+      <span class="section-badge">Admin Setting</span>
+      <div class="slabel" style="margin-top:0;">Track Admins</div>
       <div class="admin-list" id="mt-admin-list"></div>
       <div class="form-group">
         <label class="form-label">Add Admin by Email</label>
