@@ -751,7 +751,6 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
     </div>
     <div class="admin-tabs">
       <button class="admin-tab active" id="atab-sessions" onclick="setAdminTab('sessions')">Sessions</button>
-      <button class="admin-tab" id="atab-rewards" onclick="setAdminTab('rewards')">Rewards</button>
       <button class="admin-tab" id="atab-participants" onclick="setAdminTab('participants')">Participants</button>
     </div>
   </div>
@@ -848,7 +847,25 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
           <div class="qr-mgmt-list" id="qr-mgmt-list"></div>
         </div>
       </div>
-
+      <div class="section mt-16">
+        <div class="slabel">Track Admins</div>
+        <div class="card">
+          <p style="font-size:12px;color:var(--ts);margin-bottom:14px;line-height:1.6;">
+            Add other people as admins of this track so they can also manage sessions and rewards.
+          </p>
+          <div id="sess-admin-list" class="admin-list"></div>
+          <div id="sess-add-admin-error" class="error-msg"></div>
+          <div id="sess-add-admin-success" class="success-msg"></div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Add Admin by Email</label>
+            <div class="join-row">
+              <input class="form-input" id="sess-new-admin-email" type="email" placeholder="colleague@company.com">
+              <button class="btn-join" id="btn-sess-add-admin" onclick="submitAddTrackAdminFromSessions()">Add</button>
+            </div>
+            <p class="form-hint">They must already have a Stamp Journey account.</p>
+          </div>
+        </div>
+      </div>
       <div class="section mt-16">
         <div class="slabel">Data History</div>
         <div class="card">
@@ -863,6 +880,22 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
           </div>
           <button class="btn-download-history" id="btn-download-history" onclick="downloadSelectedHistory()">
             <i class="ti ti-table-export"></i> Download scan history
+          </button>
+        </div>
+      </div>
+      <div class="section mt-16">
+        <div class="slabel">Reward Template</div>
+        <div class="card">
+          <p style="font-size:12px;color:var(--ts);margin-bottom:14px;line-height:1.6;">
+            Define which milestones along the way unlock a reward.
+          </p>
+          <div class="slabel" style="margin-top:0;">Milestones</div>
+          <div class="template-editor" id="tpl-milestones"></div>
+          <button class="btn-add-session" style="margin-top:10px;margin-bottom:0;" onclick="addMilestoneRow()">
+            <i class="ti ti-plus"></i> Add Milestone
+          </button>
+          <button class="btn-primary" style="margin-top:14px;" id="btn-save-template" onclick="saveRewardTemplate()">
+            <i class="ti ti-check"></i> Save Reward Template
           </button>
         </div>
       </div>
@@ -886,30 +919,6 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
     </div>
 
     <!-- ── PANE: REWARD TEMPLATE ── -->
-    <div class="admin-pane" id="apane-rewards">
-      <div class="section">
-        <div class="slabel">Reward Template</div>
-        <div class="card">
-          <p style="font-size:12px;color:var(--ts);margin-bottom:14px;line-height:1.6;">
-            Define how many stamps participants need to collect in total, and which
-            milestones along the way unlock a reward.
-          </p>
-          <div class="form-group">
-            <label class="form-label">Total Stamps in Journey</label>
-            <input class="form-input" id="tpl-total-stamps" type="number" min="1" max="200" value="10" oninput="onTotalStampsInput()">
-            <p class="form-hint" id="tpl-total-stamps-hint">Participants will see 10 stamp slots on their card.</p>
-          </div>
-          <div class="slabel" style="margin-top:6px;">Milestones</div>
-          <div class="template-editor" id="tpl-milestones"></div>
-          <button class="btn-add-session" style="margin-top:10px;margin-bottom:0;" onclick="addMilestoneRow()">
-            <i class="ti ti-plus"></i> Add Milestone
-          </button>
-          <button class="btn-primary" style="margin-top:14px;" id="btn-save-template" onclick="saveRewardTemplate()">
-            <i class="ti ti-check"></i> Save Reward Template
-          </button>
-        </div>
-      </div>
-    </div>
 
   </div>
 </div>
@@ -1928,14 +1937,13 @@ function renderParticipantPreview(wrap, t, p, sessions) {
 }
 
 function setAdminTab(tab) {
-  ['sessions','participants','rewards'].forEach(function(t) {
+  ['sessions','participants'].forEach(function(t) {
     document.getElementById('atab-'+t).classList.toggle('active', t===tab);
     document.getElementById('apane-'+t).classList.toggle('active', t===tab);
   });
-  if (tab === 'rewards') renderRewardTemplateEditor();
 }
 
-function renderAdmin() { renderAttendanceSummary(); renderQRManagement(); renderHistoryPicker(); renderAdminParticipants(); renderManageTrackAdmins(); }
+function renderAdmin() { renderAttendanceSummary(); renderQRManagement(); renderHistoryPicker(); renderAdminParticipants(); renderManageTrackAdmins(); renderRewardTemplateEditor(); }
 
 function updateSessionCountHint(n) {
   var hint = document.getElementById('ts-session-count-hint');
@@ -2659,16 +2667,7 @@ var templateEditorState = { totalStamps: 10, milestones: [] };
 
 function renderRewardTemplateEditor() {
   templateEditorState = JSON.parse(JSON.stringify(activeTrack.template));
-  document.getElementById('tpl-total-stamps').value = templateEditorState.totalStamps || 10;
-  onTotalStampsInput();
   renderMilestoneRows();
-}
-function onTotalStampsInput() {
-  var hint = document.getElementById('tpl-total-stamps-hint');
-  if (!hint) return;
-  var raw = Number(document.getElementById('tpl-total-stamps').value);
-  var n = Math.max(1, raw || 0);
-  hint.textContent = 'Participants will see ' + n + ' stamp slot' + (n === 1 ? '' : 's') + ' on their card.';
 }
 function renderMilestoneRows() {
   var wrap = document.getElementById('tpl-milestones');
@@ -2691,7 +2690,7 @@ function updateMilestoneField(idx, field, value) {
   templateEditorState.milestones[idx][field] = value;
 }
 function addMilestoneRow() {
-  var totalStamps = Math.max(1, Number(document.getElementById('tpl-total-stamps').value)||10);
+  var totalStamps = Math.max(1, (activeTrack && activeTrack.template && activeTrack.template.totalStamps) || 10);
   var nextPos = (templateEditorState.milestones.length
     ? Math.max.apply(null, templateEditorState.milestones.map(function(m){return Number(m.position)||0;})) + 5
     : 5);
@@ -2704,13 +2703,7 @@ function removeMilestoneRow(idx) {
   renderMilestoneRows();
 }
 async function saveRewardTemplate() {
-  var totalStamps = Math.max(1, Number(document.getElementById('tpl-total-stamps').value)||10);
-  var overLimit = templateEditorState.milestones.filter(function(m){ return Number(m.position) > totalStamps; });
-  if (overLimit.length) {
-    var names = overLimit.map(function(m){ return m.name + ' (' + m.position + ' stamps)'; }).join(', ');
-    alert('These milestones unlock past the new total of ' + totalStamps + ' stamps: ' + names + '.\n\nLower their position or raise the total stamps before saving.');
-    return;
-  }
+  var totalStamps = Math.max(1, (activeTrack && activeTrack.template && activeTrack.template.totalStamps) || 10);
   busy('btn-save-template','Saving…');
   try {
     var payloadTemplate = { totalStamps: totalStamps, milestones: templateEditorState.milestones };
