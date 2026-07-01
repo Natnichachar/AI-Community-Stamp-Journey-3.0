@@ -638,6 +638,26 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
         <button class="btn-copy-code" onclick="copyManageAccessCode()"><i class="ti ti-copy"></i> Copy code</button>
       </div>
 
+      <div id="track-settings-error" class="error-msg"></div>
+      <div id="track-settings-success" class="success-msg"></div>
+
+      <div class="slabel" style="margin-top:18px;">Track Settings</div>
+      <div class="form-group">
+        <label class="form-label">Track Name</label>
+        <div class="join-row">
+          <input class="form-input" id="ts-track-name" type="text" placeholder="Track name">
+          <button class="btn-join" id="btn-ts-save-name" onclick="saveTrackName()">Save</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Number of Sessions <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--ts);">(= total stamps)</span></label>
+        <div class="join-row">
+          <input class="form-input" id="ts-session-count" type="number" min="1" max="50" placeholder="e.g. 10" oninput="updateSessionCountHint(Number(this.value)||0)">
+          <button class="btn-join" id="btn-ts-save-count" onclick="saveSessionCount()">Apply</button>
+        </div>
+        <p class="form-hint" id="ts-session-count-hint"></p>
+      </div>
+
       <div class="slabel" style="margin-top:18px;">Track Admins</div>
       <div class="admin-list" id="mt-admin-list"></div>
       <div class="form-group">
@@ -762,28 +782,6 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
       <div class="section mt-16">
         <div class="slabel">Manage Sessions</div>
         <div class="card">
-          <!-- ── Track Settings ── -->
-          <div class="track-settings-section">
-            <div class="slabel" style="margin-bottom:10px;">Track Settings</div>
-            <div id="track-settings-error" class="error-msg"></div>
-            <div id="track-settings-success" class="success-msg"></div>
-            <div class="form-group" style="margin-bottom:10px;">
-              <label class="form-label" style="font-size:10px;">Track Name</label>
-              <div class="join-row">
-                <input class="form-input" id="ts-track-name" type="text" placeholder="Track name" style="font-size:13px;padding:10px 12px;">
-                <button class="btn-join" id="btn-ts-save-name" onclick="saveTrackName()">Save</button>
-              </div>
-            </div>
-            <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label" style="font-size:10px;">Number of Sessions <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ts);">(= total stamps)</span></label>
-              <div class="join-row">
-                <input class="form-input" id="ts-session-count" type="number" min="1" max="50" placeholder="e.g. 10" style="font-size:13px;padding:10px 12px;" oninput="updateSessionCountHint(Number(this.value)||0)">
-                <button class="btn-join" id="btn-ts-save-count" onclick="saveSessionCount()">Apply</button>
-              </div>
-              <p class="form-hint" id="ts-session-count-hint"></p>
-            </div>
-          </div>
-          <div style="border-top:1px solid var(--cream-d);margin:16px 0;"></div>
           <button class="btn-add-session" id="btn-show-new-form" onclick="toggleNewSessionForm(true)">
             <i class="ti ti-plus"></i> Add New Session
           </button>
@@ -1400,6 +1398,13 @@ function openManageTrackModal() {
   document.getElementById('mt-new-admin-email').value = '';
   document.getElementById('manage-track-error').style.display = 'none';
   document.getElementById('manage-track-success').style.display = 'none';
+  document.getElementById('track-settings-error').style.display = 'none';
+  document.getElementById('track-settings-success').style.display = 'none';
+  // Populate track settings fields
+  document.getElementById('ts-track-name').value = activeTrack.name;
+  var n = (activeTrack.template ? activeTrack.template.totalStamps : null) || activeSessions.length || 1;
+  document.getElementById('ts-session-count').value = n;
+  updateSessionCountHint(n);
   renderManageTrackAdmins();
   document.getElementById('manage-track-overlay').classList.add('open');
 }
@@ -1948,18 +1953,8 @@ function setAdminTab(tab) {
   if (tab === 'rewards') renderRewardTemplateEditor();
 }
 
-function renderAdmin() { renderAttendanceSummary(); renderQRManagement(); renderHistoryPicker(); renderAdminParticipants(); renderManageTrackAdmins(); renderTrackSettings(); }
+function renderAdmin() { renderAttendanceSummary(); renderQRManagement(); renderHistoryPicker(); renderAdminParticipants(); renderManageTrackAdmins(); }
 
-function renderTrackSettings() {
-  var nameEl = document.getElementById('ts-track-name');
-  var countEl = document.getElementById('ts-session-count');
-  if (nameEl) nameEl.value = activeTrack ? activeTrack.name : '';
-  if (countEl) {
-    var n = activeTrack && activeTrack.template ? (activeTrack.template.totalStamps || activeSessions.length || 1) : activeSessions.length || 1;
-    countEl.value = n;
-    updateSessionCountHint(n);
-  }
-}
 function updateSessionCountHint(n) {
   var hint = document.getElementById('ts-session-count-hint');
   if (!hint) return;
