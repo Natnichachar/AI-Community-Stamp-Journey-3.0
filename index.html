@@ -279,6 +279,7 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
 .qr-mgmt-list{display:grid;gap:10px;}
 .session-picker-row{margin-bottom:14px;}
 .session-picker-row .form-label{margin-bottom:6px;}
+.track-settings-section{margin-bottom:4px;}
 /* ── Collapsible accordion sections (Attendance Summary, Manage Sessions) ── */
 .collapsible-section{background:#fff;border-radius:var(--r-lg);border:.5px solid #E8DDD4;box-shadow:var(--shadow);overflow:hidden;}
 .collapsible-summary{list-style:none;cursor:pointer;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--tm);}
@@ -649,7 +650,6 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
       </div>
 
       <div class="danger-zone">
-        <h4>Danger Zone</h4>
         <button class="btn-danger" onclick="confirmDeleteTrack()">
           <i class="ti ti-trash"></i> Delete This Track
         </button>
@@ -762,6 +762,28 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
       <div class="section mt-16">
         <div class="slabel">Manage Sessions</div>
         <div class="card">
+          <!-- ── Track Settings ── -->
+          <div class="track-settings-section">
+            <div class="slabel" style="margin-bottom:10px;">Track Settings</div>
+            <div id="track-settings-error" class="error-msg"></div>
+            <div id="track-settings-success" class="success-msg"></div>
+            <div class="form-group" style="margin-bottom:10px;">
+              <label class="form-label" style="font-size:10px;">Track Name</label>
+              <div class="join-row">
+                <input class="form-input" id="ts-track-name" type="text" placeholder="Track name" style="font-size:13px;padding:10px 12px;">
+                <button class="btn-join" id="btn-ts-save-name" onclick="saveTrackName()">Save</button>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" style="font-size:10px;">Number of Sessions <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ts);">(= total stamps)</span></label>
+              <div class="join-row">
+                <input class="form-input" id="ts-session-count" type="number" min="1" max="50" placeholder="e.g. 10" style="font-size:13px;padding:10px 12px;" oninput="updateSessionCountHint(Number(this.value)||0)">
+                <button class="btn-join" id="btn-ts-save-count" onclick="saveSessionCount()">Apply</button>
+              </div>
+              <p class="form-hint" id="ts-session-count-hint"></p>
+            </div>
+          </div>
+          <div style="border-top:1px solid var(--cream-d);margin:16px 0;"></div>
           <button class="btn-add-session" id="btn-show-new-form" onclick="toggleNewSessionForm(true)">
             <i class="ti ti-plus"></i> Add New Session
           </button>
@@ -1926,7 +1948,35 @@ function setAdminTab(tab) {
   if (tab === 'rewards') renderRewardTemplateEditor();
 }
 
-function renderAdmin() { renderAttendanceSummary(); renderQRManagement(); renderHistoryPicker(); renderAdminParticipants(); renderManageTrackAdmins(); }
+function renderAdmin() { renderAttendanceSummary(); renderQRManagement(); renderHistoryPicker(); renderAdminParticipants(); renderManageTrackAdmins(); renderTrackSettings(); }
+
+function renderTrackSettings() {
+  var nameEl = document.getElementById('ts-track-name');
+  var countEl = document.getElementById('ts-session-count');
+  if (nameEl) nameEl.value = activeTrack ? activeTrack.name : '';
+  if (countEl) {
+    var n = activeTrack && activeTrack.template ? (activeTrack.template.totalStamps || activeSessions.length || 1) : activeSessions.length || 1;
+    countEl.value = n;
+    updateSessionCountHint(n);
+  }
+}
+function updateSessionCountHint(n) {
+  var hint = document.getElementById('ts-session-count-hint');
+  if (!hint) return;
+  var current = activeSessions.length;
+  if (n === current) {
+    hint.textContent = current + ' session' + (current === 1 ? '' : 's') + ' · ' + n + ' stamp' + (n === 1 ? '' : 's') + ' (no change)';
+    hint.style.color = '';
+  } else if (n > current) {
+    hint.textContent = 'Will add ' + (n - current) + ' new session' + ((n - current) === 1 ? '' : 's') + ' → ' + n + ' stamps total.';
+    hint.style.color = 'var(--green)';
+  } else {
+    var toRemove = activeSessions.slice(n);
+    var withScans = toRemove.filter(function(s){ return adminParticipants.some(function(p){ return p.claimedSessions.indexOf(s.id) !== -1; }); });
+    hint.textContent = 'Will remove ' + (current - n) + ' session' + ((current - n) === 1 ? '' : 's') + (withScans.length ? ' ⚠ ' + withScans.length + ' already have scans' : '') + ' → ' + n + ' stamps total.';
+    hint.style.color = withScans.length ? 'var(--red)' : 'var(--amber)';
+  }
+}
 
 function renderHistoryPicker() {
   var picker = document.getElementById('history-session-picker');
@@ -2059,6 +2109,89 @@ async function refreshAdminData() {
     activeSessions      = (data.sessions||[]).map(normalizeSession);
     renderAdmin();
   } catch(e) { console.error('refreshAdminData:', e); }
+}
+
+// ── Track Settings: rename track ──
+// NOTE: requires a 'renameTrack' action in Code.gs that accepts { trackId, trackName }
+// and returns { ok: true, track: { ...updatedTrack } }.
+async function saveTrackName() {
+  var newName = (document.getElementById('ts-track-name').value || '').trim();
+  if (!newName) { showErr('track-settings-error', 'Please enter a track name.'); return; }
+  if (newName === activeTrack.name) { return; }
+  busy('btn-ts-save-name', 'Saving…');
+  try {
+    var data = await apiRequest('renameTrack', { trackId: activeTrack.id, trackName: newName });
+    activeTrack.name = newName;
+    // Update the header and dashboard entry
+    document.getElementById('a-track-name').innerHTML = '<i class="ti ti-shield-check" style="font-size:16px;margin-right:5px;"></i>' + escapeHtml(newName);
+    var idx = myTracks.findIndex(function(t){ return t.id === activeTrack.id; });
+    if (idx !== -1) myTracks[idx].name = newName;
+    var ok = document.getElementById('track-settings-success');
+    ok.textContent = 'Track renamed to "' + newName + '".'; ok.style.display = 'block';
+    setTimeout(function(){ ok.style.display = 'none'; }, 3500);
+  } catch(e) { showErr('track-settings-error', e.message); }
+  finally { restore('btn-ts-save-name'); }
+}
+
+// ── Track Settings: adjust session count ──
+async function saveSessionCount() {
+  var newCount = Math.max(1, Number(document.getElementById('ts-session-count').value) || 1);
+  var current  = activeSessions.length;
+  if (newCount === current) return;
+
+  if (newCount > 50) { showErr('track-settings-error', 'Maximum 50 sessions allowed.'); return; }
+
+  // Warn if removing sessions that already have scans
+  if (newCount < current) {
+    var toRemove = activeSessions.slice(newCount);
+    var withScans = toRemove.filter(function(s){ return adminParticipants.some(function(p){ return p.claimedSessions.indexOf(s.id) !== -1; }); });
+    if (withScans.length) {
+      var names = withScans.map(function(s){ return s.name; }).join(', ');
+      if (!confirm('Removing these sessions will hide them, but their stamps are preserved:\n' + names + '\n\nContinue?')) return;
+    }
+  }
+
+  busy('btn-ts-save-count', 'Applying…');
+  try {
+    var btn = document.getElementById('btn-ts-save-count');
+
+    if (newCount > current) {
+      // Add sessions
+      var toAdd = newCount - current;
+      for (var i = 1; i <= toAdd; i++) {
+        if (btn) btn.innerHTML = '<i class="ti ti-loader-2"></i> ' + i + '/' + toAdd;
+        await apiRequest('createSession', {
+          trackId: activeTrack.id,
+          sessionName: 'Session ' + (current + i),
+          sessionType: 'Sharing', icon: 'ti-brain',
+          description: '', location: '', time: ''
+        });
+      }
+    } else {
+      // Remove last (current - newCount) sessions
+      var toDelete = activeSessions.slice(newCount);
+      for (var j = 0; j < toDelete.length; j++) {
+        if (btn) btn.innerHTML = '<i class="ti ti-loader-2"></i> ' + (j + 1) + '/' + toDelete.length;
+        await apiRequest('deleteSession', { trackId: activeTrack.id, sessionId: toDelete[j].id });
+      }
+    }
+
+    // Sync totalStamps to match new count
+    var currentTemplate = activeTrack.template || { totalStamps: newCount, milestones: [] };
+    var safeMilestones = (currentTemplate.milestones || []).filter(function(m){ return Number(m.position) <= newCount; });
+    await apiRequest('updateRewardTemplate', {
+      trackId: activeTrack.id,
+      template: { totalStamps: newCount, milestones: safeMilestones }
+    });
+    activeTrack.template = { totalStamps: newCount, milestones: safeMilestones };
+
+    await refreshAdminData();
+    var ok = document.getElementById('track-settings-success');
+    ok.textContent = 'Updated to ' + newCount + ' session' + (newCount === 1 ? '' : 's') + ' · ' + newCount + ' stamp' + (newCount === 1 ? '' : 's') + '.';
+    ok.style.display = 'block';
+    setTimeout(function(){ ok.style.display = 'none'; }, 3500);
+  } catch(e) { showErr('track-settings-error', e.message); }
+  finally { restore('btn-ts-save-count'); }
 }
 
 // ── New session form toggle ──
