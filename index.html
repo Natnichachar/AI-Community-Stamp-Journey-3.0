@@ -587,7 +587,7 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
         </div>
         <div class="form-group">
           <label class="form-label">Number of Sessions</label>
-          <input class="form-input" id="ct-session-count" type="number" min="1" max="200" value="10" oninput="onCtSessionCountInput()">
+          <input class="form-input" id="ct-session-count" type="number" min="1" max="50" value="10" oninput="onCtSessionCountInput()">
           <p class="form-hint" id="ct-session-count-hint">Participants will collect <strong>10 stamps</strong> — 1 per session attended.</p>
         </div>
         <div class="form-group">
@@ -1286,6 +1286,7 @@ async function submitCreateTrack() {
     var rewardAt   = Number(document.getElementById('ct-reward-at').value) || 0;
 
     if (!name) { showErr('create-track-error','Please enter a track name.'); return; }
+    if (sessionCount > 50) { showErr('create-track-error', 'Maximum 50 sessions can be created at once. You can add more from the admin panel after creation.'); return; }
 
     // Validate reward milestone position against session count
     if (rewardName && rewardAt > sessionCount) {
@@ -1303,8 +1304,8 @@ async function submitCreateTrack() {
     var created = myTracks.find(function(t){ return t.name === name && t.role === 'admin'; });
     lastCreatedAccessCode = created ? created.accessCode : '';
 
-    // Step 2: immediately set the reward template (totalStamps = sessionCount)
     if (created) {
+      // Step 2: set the reward template (totalStamps = sessionCount)
       var milestones = [];
       if (rewardName && rewardAt >= 1 && rewardAt <= sessionCount) {
         milestones = [{ position: rewardAt, name: rewardName, icon: 'ti-gift' }];
@@ -1313,9 +1314,24 @@ async function submitCreateTrack() {
         trackId: created.id,
         template: { totalStamps: sessionCount, milestones: milestones }
       });
+
+      // Step 3: create N placeholder sessions sequentially
+      var btn = document.getElementById('btn-do-create-track');
+      for (var i = 1; i <= sessionCount; i++) {
+        if (btn) btn.innerHTML = '<i class="ti ti-loader-2"></i> Creating sessions… ' + i + '/' + sessionCount;
+        await apiRequest('createSession', {
+          trackId: created.id,
+          sessionName: 'Session ' + i,
+          sessionType: 'Sharing',
+          icon: 'ti-brain',
+          description: '',
+          location: '',
+          time: ''
+        });
+      }
     }
 
-    // Step 3: show result
+    // Step 4: show result
     document.getElementById('ct-result-code').textContent = lastCreatedAccessCode;
     var summaryParts = [sessionCount + ' session' + (sessionCount === 1 ? '' : 's') + ' · ' + sessionCount + ' stamp' + (sessionCount === 1 ? '' : 's')];
     if (rewardName && rewardAt >= 1) summaryParts.push('Reward: "' + rewardName + '" at ' + rewardAt + ' stamps');
