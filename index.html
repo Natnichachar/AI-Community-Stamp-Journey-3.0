@@ -585,6 +585,21 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
           <label class="form-label">Track Name</label>
           <input class="form-input" id="ct-track-name" type="text" placeholder="e.g. AI Community Bangkok">
         </div>
+        <div class="form-group">
+          <label class="form-label">Number of Sessions</label>
+          <input class="form-input" id="ct-session-count" type="number" min="1" max="200" value="10" oninput="onCtSessionCountInput()">
+          <p class="form-hint" id="ct-session-count-hint">Participants will collect <strong>10 stamps</strong> — 1 per session attended.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reward Milestone <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--ts);">(optional)</span></label>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <input class="form-input" id="ct-reward-name" type="text" placeholder="e.g. Coffee voucher" style="flex:1;">
+            <span style="font-size:12px;color:var(--ts);white-space:nowrap;">at</span>
+            <input class="form-input" id="ct-reward-at" type="number" min="1" value="" placeholder="N" style="width:70px;text-align:center;" oninput="onCtRewardAtInput()">
+            <span style="font-size:12px;color:var(--ts);white-space:nowrap;">stamps</span>
+          </div>
+          <p class="form-hint" id="ct-reward-hint">Leave blank to configure rewards later in the Rewards tab.</p>
+        </div>
         <button class="btn-primary" id="btn-do-create-track" onclick="submitCreateTrack()">
           <i class="ti ti-check"></i> Create Track
         </button>
@@ -596,6 +611,7 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
           <div class="code-label">ACCESS CODE</div>
           <button class="btn-copy-code" onclick="copyAccessCode()"><i class="ti ti-copy"></i> Copy code</button>
         </div>
+        <p id="ct-result-summary" style="font-size:12px;color:var(--ts);text-align:center;margin-bottom:14px;line-height:1.6;"></p>
         <button class="btn-primary" onclick="closeCreateTrackModal()">
           <i class="ti ti-arrow-right"></i> Go to Dashboard
         </button>
@@ -633,6 +649,7 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
       </div>
 
       <div class="danger-zone">
+        <h4>Danger Zone</h4>
         <button class="btn-danger" onclick="confirmDeleteTrack()">
           <i class="ti ti-trash"></i> Delete This Track
         </button>
@@ -1248,7 +1265,12 @@ function openCreateTrackModal() {
   document.getElementById('create-track-form').style.display = 'block';
   document.getElementById('create-track-result').style.display = 'none';
   document.getElementById('ct-track-name').value = '';
+  document.getElementById('ct-session-count').value = '10';
+  document.getElementById('ct-reward-name').value = '';
+  document.getElementById('ct-reward-at').value = '';
+  document.getElementById('ct-result-summary').textContent = '';
   document.getElementById('create-track-error').style.display = 'none';
+  onCtSessionCountInput();
   document.getElementById('create-track-overlay').classList.add('open');
 }
 function closeCreateTrackModal() {
@@ -1259,12 +1281,45 @@ async function submitCreateTrack() {
   busy('btn-do-create-track','Creating…');
   try {
     var name = document.getElementById('ct-track-name').value.trim();
+    var sessionCount = Math.max(1, Number(document.getElementById('ct-session-count').value) || 1);
+    var rewardName = document.getElementById('ct-reward-name').value.trim();
+    var rewardAt   = Number(document.getElementById('ct-reward-at').value) || 0;
+
     if (!name) { showErr('create-track-error','Please enter a track name.'); return; }
+
+    // Validate reward milestone position against session count
+    if (rewardName && rewardAt > sessionCount) {
+      showErr('create-track-error', 'The reward unlocks at ' + rewardAt + ' stamps, but the track only has ' + sessionCount + ' sessions (' + sessionCount + ' stamps). Lower the reward position or increase the session count.');
+      return;
+    }
+    if (rewardAt < 1 && rewardName) {
+      showErr('create-track-error', 'Please enter the stamp count at which "' + rewardName + '" unlocks.');
+      return;
+    }
+
+    // Step 1: create the track
     var data = await apiRequest('createTrack', { trackName: name });
     myTracks = (data.tracks||[]).map(normalizeTrackSummary);
     var created = myTracks.find(function(t){ return t.name === name && t.role === 'admin'; });
     lastCreatedAccessCode = created ? created.accessCode : '';
+
+    // Step 2: immediately set the reward template (totalStamps = sessionCount)
+    if (created) {
+      var milestones = [];
+      if (rewardName && rewardAt >= 1 && rewardAt <= sessionCount) {
+        milestones = [{ position: rewardAt, name: rewardName, icon: 'ti-gift' }];
+      }
+      await apiRequest('updateRewardTemplate', {
+        trackId: created.id,
+        template: { totalStamps: sessionCount, milestones: milestones }
+      });
+    }
+
+    // Step 3: show result
     document.getElementById('ct-result-code').textContent = lastCreatedAccessCode;
+    var summaryParts = [sessionCount + ' session' + (sessionCount === 1 ? '' : 's') + ' · ' + sessionCount + ' stamp' + (sessionCount === 1 ? '' : 's')];
+    if (rewardName && rewardAt >= 1) summaryParts.push('Reward: "' + rewardName + '" at ' + rewardAt + ' stamps');
+    document.getElementById('ct-result-summary').textContent = summaryParts.join('  ·  ');
     document.getElementById('create-track-form').style.display = 'none';
     document.getElementById('create-track-result').style.display = 'block';
   } catch(e) { showErr('create-track-error', e.message); }
@@ -1272,6 +1327,31 @@ async function submitCreateTrack() {
 }
 function copyAccessCode() {
   navigator.clipboard.writeText(lastCreatedAccessCode).then(function(){ alert('Access code copied: ' + lastCreatedAccessCode); });
+}
+function onCtSessionCountInput() {
+  var n = Math.max(1, Number(document.getElementById('ct-session-count').value) || 0);
+  var hint = document.getElementById('ct-session-count-hint');
+  if (hint) hint.innerHTML = 'Participants will collect <strong>' + n + ' stamp' + (n===1?'':'s') + '</strong> — 1 per session attended.';
+  // Also re-validate the reward-at field if it's already filled
+  onCtRewardAtInput();
+}
+function onCtRewardAtInput() {
+  var n = Math.max(1, Number(document.getElementById('ct-session-count').value) || 1);
+  var at = Number(document.getElementById('ct-reward-at').value) || 0;
+  var hint = document.getElementById('ct-reward-hint');
+  if (!hint) return;
+  if (!at) {
+    hint.textContent = 'Leave blank to configure rewards later in the Rewards tab.';
+    hint.style.color = '';
+    return;
+  }
+  if (at > n) {
+    hint.textContent = '⚠ ' + at + ' exceeds the total of ' + n + ' stamps — lower this or increase the session count.';
+    hint.style.color = 'var(--red)';
+  } else {
+    hint.textContent = 'Reward unlocks after ' + at + ' of ' + n + ' stamps collected.';
+    hint.style.color = 'var(--green)';
+  }
 }
 
 // ── Manage Track Modal (Track Manager) ──
