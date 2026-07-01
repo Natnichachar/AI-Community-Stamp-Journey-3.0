@@ -852,22 +852,19 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
         </div>
       </div>
       <div class="section mt-16">
-        <div class="slabel">Track Admins</div>
+        <div class="slabel">Reward Template</div>
         <div class="card">
           <p style="font-size:12px;color:var(--ts);margin-bottom:14px;line-height:1.6;">
-            Add other people as admins of this track so they can also manage sessions and rewards.
+            Define which milestones along the way unlock a reward.
           </p>
-          <div id="sess-admin-list" class="admin-list"></div>
-          <div id="sess-add-admin-error" class="error-msg"></div>
-          <div id="sess-add-admin-success" class="success-msg"></div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Add Admin by Email</label>
-            <div class="join-row">
-              <input class="form-input" id="sess-new-admin-email" type="email" placeholder="colleague@company.com">
-              <button class="btn-join" id="btn-sess-add-admin" onclick="submitAddTrackAdminFromSessions()">Add</button>
-            </div>
-            <p class="form-hint">They must already have a Stamp Journey account.</p>
-          </div>
+          <div class="slabel" style="margin-top:0;">Milestones</div>
+          <div class="template-editor" id="tpl-milestones"></div>
+          <button class="btn-add-session" style="margin-top:10px;margin-bottom:0;" onclick="addMilestoneRow()">
+            <i class="ti ti-plus"></i> Add Milestone
+          </button>
+          <button class="btn-primary" style="margin-top:14px;" id="btn-save-template" onclick="saveRewardTemplate()">
+            <i class="ti ti-check"></i> Save Reward Template
+          </button>
         </div>
       </div>
       <div class="section mt-16">
@@ -884,22 +881,6 @@ body{background:#e0e1e5;min-height:100vh;display:flex;justify-content:center;fon
           </div>
           <button class="btn-download-history" id="btn-download-history" onclick="downloadSelectedHistory()">
             <i class="ti ti-table-export"></i> Download scan history
-          </button>
-        </div>
-      </div>
-      <div class="section mt-16">
-        <div class="slabel">Reward Template</div>
-        <div class="card">
-          <p style="font-size:12px;color:var(--ts);margin-bottom:14px;line-height:1.6;">
-            Define which milestones along the way unlock a reward.
-          </p>
-          <div class="slabel" style="margin-top:0;">Milestones</div>
-          <div class="template-editor" id="tpl-milestones"></div>
-          <button class="btn-add-session" style="margin-top:10px;margin-bottom:0;" onclick="addMilestoneRow()">
-            <i class="ti ti-plus"></i> Add Milestone
-          </button>
-          <button class="btn-primary" style="margin-top:14px;" id="btn-save-template" onclick="saveRewardTemplate()">
-            <i class="ti ti-check"></i> Save Reward Template
           </button>
         </div>
       </div>
